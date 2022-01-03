@@ -25,14 +25,21 @@ class AlcoholDrinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var k = <Widget>[];
+
+    for (int i = 0; i < 6; ++i) {
+      k.add(const DrinkPage(
+        name: "진 토닉",
+        recipe: "이 거\n저거\n그거",
+      ));
+    }
+
     return Scaffold(
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
-          child: PageView(
-              scrollDirection: Axis.vertical,
-              children: const <Widget>[DrinkPage(), DrinkPage(), DrinkPage()]),
+          child: PageView(scrollDirection: Axis.vertical, children: k),
         ),
       ),
     );
@@ -40,14 +47,25 @@ class AlcoholDrinks extends StatelessWidget {
 }
 
 class DrinkPage extends StatelessWidget {
-  const DrinkPage({Key? key}) : super(key: key);
+  const DrinkPage({
+    Key? key,
+    required this.name,
+    required this.recipe,
+  }) : super(key: key);
+
+  final String name;
+  final String recipe;
 
   @override
   Widget build(BuildContext context) {
     return PageView(
       scrollDirection: Axis.horizontal,
       controller: PageController(initialPage: 1),
-      children: const <Widget>[SelectCard(), DrinkCard(), RecipeCard()],
+      children: <Widget>[
+        const SelectCard(),
+        DrinkCard(name: name),
+        RecipeCard(name: name, recipe: recipe)
+      ],
     );
   }
 }
@@ -59,7 +77,7 @@ class SelectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 20,
+//      elevation: 1,
       child: Column(
         children: const <Widget>[
           ListTile(
@@ -74,13 +92,17 @@ class SelectCard extends StatelessWidget {
 }
 
 class DrinkCard extends StatelessWidget {
-  const DrinkCard({Key? key}) : super(key: key);
+  const DrinkCard({
+    Key? key,
+    required this.name,
+  }) : super(key: key);
 
+  final String name;
   @override
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 20,
+//      elevation: 20,
       child: Column(
         children: <Widget>[
           const Image(
@@ -88,9 +110,9 @@ class DrinkCard extends StatelessWidget {
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gin_and_Tonic_with_ingredients.jpg/1024px-Gin_and_Tonic_with_ingredients.jpg"),
             height: 300,
           ),
-          const ListTile(
-            title: Text("진 토닉Gin Tonic"),
-            subtitle: Text("진과 토닉을 섞어서 만든다"),
+          ListTile(
+            title: Text(name),
+            subtitle: const Text("진과 토닉을 섞어서 만든다"),
           ),
           Row(
             children: <Widget>[
@@ -113,22 +135,35 @@ class DrinkCard extends StatelessWidget {
 }
 
 class RecipeCard extends StatelessWidget {
-  const RecipeCard({Key? key}) : super(key: key);
+  const RecipeCard({
+    Key? key,
+    required this.name,
+    required this.recipe,
+  }) : super(key: key);
+
+  final String name;
+  final String recipe;
 
   @override
   Widget build(BuildContext context) {
+    var recipes = recipe.split("\n");
+
+    var widgets = <Widget>[];
+    for (var r in recipes) {
+      widgets.add(Text(r));
+    }
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 20,
+//      elevation: 20,
       child: Column(
-        children: const <Widget>[
-          ListTile(
-            title: Text("진 토닉Gin Tonic"),
-            subtitle: Text("진과 토닉을 섞어서 만든다"),
-          ),
-          Text("Gin 1oz"),
-          Text("Tonic Fill-up")
-        ],
+        children: <Widget>[
+              ListTile(
+                title: Text(name),
+                subtitle: const Text("진과 토닉을 섞어서 만든다"),
+              ),
+            ] +
+            widgets,
       ),
     );
   }
