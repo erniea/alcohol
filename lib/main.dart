@@ -328,14 +328,14 @@ class RecipePage extends StatelessWidget {
 }
 
 class SocialPage extends StatelessWidget {
-  SocialPage({
+  const SocialPage({
     Key? key,
     required this.idx,
     required this.name,
   }) : super(key: key);
 
-  int idx = 0;
-  String name;
+  final int idx;
+  final String name;
   @override
   Widget build(BuildContext context) {
     return Card(
