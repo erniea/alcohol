@@ -1,5 +1,7 @@
 import 'dart:html';
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 
@@ -20,6 +22,40 @@ class Alcohol extends StatelessWidget {
   }
 }
 
+class Drink {
+  final int idx;
+  final String name;
+  final String recipe;
+
+  Drink({required this.idx, required this.name, required this.recipe});
+
+  factory Drink.fromJson(Map<String, dynamic> json) {
+    return Drink(idx: json["idx"], name: json["name"], recipe: json["recipe"]);
+  }
+}
+
+void fetchDrink() {
+  final response = http.get(
+      Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
+      headers: {});
+
+/*
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    var arr =
+        jsonDecode(response.body)["results"] as List<Map<String, dynamic>>;
+    var result = <Drink>[];
+    for (var v in arr) {
+      result.add(Drink.fromJson(v));
+    }
+    return result;
+  } else {
+    throw "errror";
+  }
+  */
+}
+
 class AlcoholDrinks extends StatefulWidget {
   const AlcoholDrinks({Key? key}) : super(key: key);
 
@@ -31,10 +67,18 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
   int idx = 0;
   String name = "";
+  late Future<List<Drink>> futureDrink;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDrink();
+  }
 
   @override
   Widget build(BuildContext context) {
     var k = <DrinkInfo>[];
+
     k.add(
       const DrinkInfo(
         idx: 0,
@@ -122,6 +166,15 @@ class DrinkInfo extends StatelessWidget {
     required this.desc,
     required this.recipe,
   }) : super(key: key);
+
+  factory DrinkInfo.fromDrink(Drink drink) {
+    return DrinkInfo(
+        idx: drink.idx,
+        name: drink.name,
+        img: "",
+        desc: "",
+        recipe: drink.recipe);
+  }
 
   final int idx;
   final String name;
