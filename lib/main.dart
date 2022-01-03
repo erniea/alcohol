@@ -29,12 +29,14 @@ class AlcoholDrinks extends StatefulWidget {
 
 class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
+  int idx = 0;
 
   @override
   Widget build(BuildContext context) {
-    var k = <Widget>[];
+    var k = <DrinkInfo>[];
     k.add(
       const DrinkInfo(
+        idx: 0,
         name: "진 토닉",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gin_and_Tonic_with_ingredients.jpg/1280px-Gin_and_Tonic_with_ingredients.jpg",
@@ -44,6 +46,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     );
     k.add(
       const DrinkInfo(
+        idx: 1,
         name: "마티니",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/15-09-26-RalfR-WLC-0084.jpg/220px-15-09-26-RalfR-WLC-0084.jpg",
@@ -53,6 +56,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     );
     k.add(
       const DrinkInfo(
+        idx: 2,
         name: "롱 아일랜드 아이스 티",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Long_Island_Iced_Tea_2008.jpg/220px-Long_Island_Iced_Tea_2008.jpg",
@@ -62,6 +66,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     );
     k.add(
       const DrinkInfo(
+        idx: 3,
         name: "비트윈 더 쉬츠",
         img: "",
         recipe: "브랜디\n럼\n트리플 섹\n레몬주스",
@@ -82,13 +87,14 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
+                    idx = k[inPage].idx;
                   });
                 },
                 controller: PageController(initialPage: page),
                 scrollDirection: Axis.vertical,
                 children: k,
               ),
-              const SocialPage()
+              SocialPage(idx: idx)
             ],
           ),
         ),
@@ -100,12 +106,14 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 class DrinkInfo extends StatelessWidget {
   const DrinkInfo({
     Key? key,
+    required this.idx,
     required this.name,
     required this.img,
     required this.desc,
     required this.recipe,
   }) : super(key: key);
 
+  final int idx;
   final String name;
   final String img;
   final String desc;
@@ -310,26 +318,35 @@ class RecipePage extends StatelessWidget {
 }
 
 class SocialPage extends StatelessWidget {
-  const SocialPage({Key? key}) : super(key: key);
+  SocialPage({
+    Key? key,
+    required this.idx,
+  }) : super(key: key);
 
+  int idx = 0;
   @override
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(children: const <Widget>[
+      child: Column(children: <Widget>[
         Card(
+          child: ListTile(
+            title: Text(idx.toString()),
+          ),
+        ),
+        const Card(
           child: ListTile(
             title: Text("누구누구"),
             subtitle: Text("맛있다"),
           ),
         ),
-        Card(
+        const Card(
           child: ListTile(
             title: Text("누구누구"),
             subtitle: Text("맛있다"),
           ),
         ),
-        Card(
+        const Card(
           child: ListTile(
             title: Text("누구누구"),
             subtitle: Text("맛있다"),
