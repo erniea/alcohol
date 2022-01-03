@@ -30,6 +30,7 @@ class AlcoholDrinks extends StatefulWidget {
 class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
   int idx = 0;
+  String name = "";
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +71,14 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         name: "비트윈 더 쉬츠",
         img: "",
         recipe: "브랜디\n럼\n트리플 섹\n레몬주스",
-        desc: "길다",
+        desc: "쓰까무라",
       ),
     );
+
+    setState(() {
+      name = k[page].name;
+    });
+
     return Scaffold(
       body: Center(
         child: Container(
@@ -88,13 +94,17 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                   setState(() {
                     page = inPage;
                     idx = k[inPage].idx;
+                    name = k[inPage].name;
                   });
                 },
                 controller: PageController(initialPage: page),
                 scrollDirection: Axis.vertical,
                 children: k,
               ),
-              SocialPage(idx: idx)
+              SocialPage(
+                idx: idx,
+                name: name,
+              )
             ],
           ),
         ),
@@ -321,14 +331,17 @@ class SocialPage extends StatelessWidget {
   SocialPage({
     Key? key,
     required this.idx,
+    required this.name,
   }) : super(key: key);
 
   int idx = 0;
+  String name;
   @override
   Widget build(BuildContext context) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(children: <Widget>[
+        Text(name),
         Card(
           child: ListTile(
             title: Text(idx.toString()),
