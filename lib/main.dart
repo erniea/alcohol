@@ -20,14 +20,47 @@ class Alcohol extends StatelessWidget {
   }
 }
 
-class AlcoholDrinks extends StatelessWidget {
-  const AlcoholDrinks({Key? key}) : super(key: key);
+class AutomaticKeepAliveScreen extends StatefulWidget {
+  const AutomaticKeepAliveScreen({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
+  final Widget child;
+
+  @override
+  _AutomaticKeepAliveScreenState createState() =>
+      _AutomaticKeepAliveScreenState();
+}
+
+class _AutomaticKeepAliveScreenState extends State<AutomaticKeepAliveScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    var k = <Widget>[];
+    super.build(context);
+
+    return widget.child;
+  }
+}
+
+class AlcoholDrinks extends StatefulWidget {
+  const AlcoholDrinks({Key? key}) : super(key: key);
+
+  @override
+  State<AlcoholDrinks> createState() => _AlcoholDrinksState();
+}
+
+class _AlcoholDrinksState extends State<AlcoholDrinks> {
+  int idx = 0;
+  @override
+  Widget build(BuildContext context) {
+    var k = <DrinkInfo>[];
+
     k.add(
       const DrinkInfo(
+        idx: 0,
         name: "진 토닉",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gin_and_Tonic_with_ingredients.jpg/1280px-Gin_and_Tonic_with_ingredients.jpg",
@@ -37,6 +70,7 @@ class AlcoholDrinks extends StatelessWidget {
     );
     k.add(
       const DrinkInfo(
+        idx: 1,
         name: "마티니",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/15-09-26-RalfR-WLC-0084.jpg/220px-15-09-26-RalfR-WLC-0084.jpg",
@@ -46,6 +80,7 @@ class AlcoholDrinks extends StatelessWidget {
     );
     k.add(
       const DrinkInfo(
+        idx: 2,
         name: "롱 아일랜드 아이스 티",
         img:
             "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Long_Island_Iced_Tea_2008.jpg/220px-Long_Island_Iced_Tea_2008.jpg",
@@ -53,15 +88,37 @@ class AlcoholDrinks extends StatelessWidget {
         desc: "길다",
       ),
     );
-
-    for (int i = 0; i < 6; ++i) {}
-
+    k.add(
+      const DrinkInfo(
+        idx: 3,
+        name: "비트윈 더 쉬츠",
+        img: "",
+        recipe: "브랜디\n럼\n트리플 섹\n레몬주스",
+        desc: "길다",
+      ),
+    );
     return Scaffold(
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
-          child: PageView(scrollDirection: Axis.vertical, children: k),
+          child: PageView(
+            controller: PageController(initialPage: 1),
+            scrollDirection: Axis.horizontal,
+            children: <Widget>[
+              const SelectPage(),
+              AutomaticKeepAliveScreen(
+                child: PageView(
+                  onPageChanged: (int inPage) {
+                    idx = k[inPage].idx;
+                  },
+                  scrollDirection: Axis.vertical,
+                  children: k,
+                ),
+              ),
+              const SocialPage()
+            ],
+          ),
         ),
       ),
     );
@@ -71,12 +128,14 @@ class AlcoholDrinks extends StatelessWidget {
 class DrinkInfo extends StatelessWidget {
   const DrinkInfo({
     Key? key,
+    required this.idx,
     required this.name,
     required this.img,
     required this.desc,
     required this.recipe,
   }) : super(key: key);
 
+  final int idx;
   final String name;
   final String img;
   final String desc;
@@ -84,19 +143,11 @@ class DrinkInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PageView(
-      scrollDirection: Axis.horizontal,
-      controller: PageController(initialPage: 1),
-      children: <Widget>[
-        const SelectPage(),
-        DrinkCard(
-          name: name,
-          img: img,
-          desc: desc,
-          recipe: recipe,
-        ),
-        const SocialPage(),
-      ],
+    return DrinkCard(
+      name: name,
+      img: img,
+      desc: desc,
+      recipe: recipe,
     );
   }
 }
