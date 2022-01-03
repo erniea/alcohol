@@ -39,9 +39,18 @@ class AlcoholDrinks extends StatelessWidget {
       const DrinkInfo(
         name: "마티니",
         img:
-            "https://w.namu.la/s/f2c06978a969687cfd1497652bbc2886a2d5c23542d28fb01f34b4de62354304e3c43f183a2e8703098562e421b0b9bf4fcd63670aeffe65d75255a361a1837562a390d4437c19df2fafea0404352004310c953942f78eaa054435ba0474790f",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/15-09-26-RalfR-WLC-0084.jpg/220px-15-09-26-RalfR-WLC-0084.jpg",
         recipe: "진\n베르뭇",
         desc: "진 과 베 르 뭇",
+      ),
+    );
+    k.add(
+      const DrinkInfo(
+        name: "롱 아일랜드 아이스 티",
+        img:
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Long_Island_Iced_Tea_2008.jpg/220px-Long_Island_Iced_Tea_2008.jpg",
+        recipe: "진\n럼\n보드카\n데킬라\n기타등등",
+        desc: "길다",
       ),
     );
 
@@ -203,9 +212,15 @@ class DetailPage extends StatelessWidget {
         },
         child: Column(
           children: <Widget>[
-            Image(
-              image: NetworkImage(img),
-              height: 300,
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.only(top: 16),
+                child: Image(
+                  image: NetworkImage(img),
+                  height: 600,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             ListTile(
               title: Text(name),
