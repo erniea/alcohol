@@ -1,10 +1,11 @@
 class Base {
+  final int idx;
   final String name;
   final bool inStock;
 
-  Base(this.name, this.inStock);
+  Base(this.idx, this.name, this.inStock);
   factory Base.fromJson(Map<String, dynamic> j) {
-    return Base(j["name"], j["instock"]);
+    return Base(j["idx"], j["name"], j["instock"]);
   }
 }
 
@@ -50,5 +51,14 @@ class Drink {
 
   factory Drink.fromJson(Map<String, dynamic> j) {
     return Drink(j["idx"], j["name"], "", "", Recipe.fromJson(j["recipe"]));
+  }
+
+  bool baseContains(int baseIdx) {
+    for (RecipeElement r in recipe.elements) {
+      if (r.base.idx == baseIdx) {
+        return true;
+      }
+    }
+    return false;
   }
 }

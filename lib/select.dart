@@ -19,8 +19,11 @@ Future<List<Base>> fetchBase() async {
 }
 
 class SelectPage extends StatefulWidget {
-  const SelectPage({Key? key}) : super(key: key);
-
+  const SelectPage(
+      {Key? key, required this.baseFilter, required this.setFilter})
+      : super(key: key);
+  final List<int> baseFilter;
+  final Function setFilter;
   @override
   State<SelectPage> createState() => _SelectPageState();
 }
@@ -44,7 +47,7 @@ class _SelectPageState extends State<SelectPage> {
   Widget build(BuildContext context) {
     List<Widget> widgets = <Widget>[];
     for (int i = 0; i < bases.length; ++i) {
-      checks.add(true);
+      checks.add(widget.baseFilter.contains(bases[i].idx) ? false : true);
 
       if (bases[i].inStock) {
         widgets.add(SwitchListTile(
@@ -52,6 +55,7 @@ class _SelectPageState extends State<SelectPage> {
           onChanged: (bool value) {
             setState(() {
               checks[i] = value;
+              widget.setFilter(value, bases[i].idx);
             });
           },
           value: checks[i],

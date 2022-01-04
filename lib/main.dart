@@ -1,4 +1,5 @@
 import 'package:alcohol/drink.dart';
+import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
 
@@ -32,8 +33,8 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
   int idx = 0;
   String name = "";
-  List<DrinkCard> drinkCard = <DrinkCard>[];
-
+  List<DrinkCard> drinkCards = <DrinkCard>[];
+  List<int> baseFilter = <int>[];
   @override
   void initState() {
     super.initState();
@@ -41,10 +42,20 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 
     result.then((value) {
       setState(() {
-        drinkCard = value;
-        idx = drinkCard[0].drink.idx;
-        name = drinkCard[0].drink.name;
+        drinkCards = value;
+        idx = drinkCards[0].drink.idx;
+        name = drinkCards[0].drink.name;
       });
+    });
+  }
+
+  void setFilter(bool isOn, int baseIdx) {
+    setState(() {
+      if (isOn) {
+        baseFilter.remove(baseIdx);
+      } else {
+        baseFilter.add(baseIdx);
+      }
     });
   }
 
@@ -98,6 +109,16 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 
 */
 
+    List<DrinkCard> drinksToShow = <DrinkCard>[];
+    for (var drink in drinkCards) {
+      bool baseContained = false;
+      for (int idx in baseFilter) {
+        baseContained |= drink.drink.baseContains(idx);
+      }
+      if (!baseContained && drink.drink.recipe.available) {
+        drinksToShow.add(drink);
+      }
+    }
     return Scaffold(
       body: Center(
         child: Container(
@@ -107,18 +128,21 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
             controller: PageController(initialPage: 1),
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              const SelectPage(),
+              SelectPage(
+                baseFilter: baseFilter,
+                setFilter: setFilter,
+              ),
               PageView(
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
-                    idx = drinkCard[inPage].drink.idx;
-                    name = drinkCard[inPage].drink.name;
+                    idx = drinkCards[inPage].drink.idx;
+                    name = drinkCards[inPage].drink.name;
                   });
                 },
                 controller: PageController(initialPage: page),
                 scrollDirection: Axis.vertical,
-                children: drinkCard,
+                children: drinksToShow,
               ),
               SocialPage(
                 idx: idx,
