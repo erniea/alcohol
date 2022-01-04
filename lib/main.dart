@@ -23,27 +23,27 @@ class Alcohol extends StatelessWidget {
   }
 }
 
-Future<List<DrinkInfo>> fetchDrink() async {
+Future<List<DrinkCard>> fetchDrink() async {
   final response = await http.get(
     Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
   );
 
   var arr = json.decode(utf8.decode(response.bodyBytes))["results"];
 
-  List<DrinkInfo> drinkInfo = <DrinkInfo>[];
+  List<DrinkCard> drinkCard = <DrinkCard>[];
 
   for (var v in arr) {
-    drinkInfo.add(
-      DrinkInfo(
+    drinkCard.add(
+      DrinkCard(
         drink: Drink.fromJson(v),
       ),
     );
   }
-  drinkInfo.sort((DrinkInfo d1, DrinkInfo d2) {
+  drinkCard.sort((DrinkCard d1, DrinkCard d2) {
     return d1.drink.recipe.available == d2.drink.recipe.available ? -1 : 1;
   });
 
-  return drinkInfo;
+  return drinkCard;
 }
 
 class AlcoholDrinks extends StatefulWidget {
@@ -57,7 +57,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
   int idx = 0;
   String name = "";
-  List<DrinkInfo> drinkInfo = <DrinkInfo>[];
+  List<DrinkCard> drinkCard = <DrinkCard>[];
 
   @override
   void initState() {
@@ -66,8 +66,8 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 
     result.then((value) {
       setState(() {
-        drinkInfo = value;
-        idx = drinkInfo[0].drink.idx;
+        drinkCard = value;
+        idx = drinkCard[0].drink.idx;
       });
     });
   }
@@ -136,13 +136,13 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
-                    idx = drinkInfo[inPage].drink.idx;
-                    name = drinkInfo[inPage].drink.name;
+                    idx = drinkCard[inPage].drink.idx;
+                    name = drinkCard[inPage].drink.name;
                   });
                 },
                 controller: PageController(initialPage: page),
                 scrollDirection: Axis.vertical,
-                children: drinkInfo,
+                children: drinkCard,
               ),
               SocialPage(
                 idx: idx,
@@ -152,22 +152,6 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class DrinkInfo extends StatelessWidget {
-  const DrinkInfo({
-    Key? key,
-    required this.drink,
-  }) : super(key: key);
-
-  final Drink drink;
-
-  @override
-  Widget build(BuildContext context) {
-    return DrinkCard(
-      drink: drink,
     );
   }
 }
