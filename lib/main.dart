@@ -68,6 +68,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
       setState(() {
         drinkCard = value;
         idx = drinkCard[0].drink.idx;
+        name = drinkCard[0].drink.name;
       });
     });
   }
