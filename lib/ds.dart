@@ -50,7 +50,8 @@ class Drink {
   Drink(this.idx, this.name, this.desc, this.img, this.recipe);
 
   factory Drink.fromJson(Map<String, dynamic> j) {
-    return Drink(j["idx"], j["name"], "", "", Recipe.fromJson(j["recipe"]));
+    return Drink(
+        j["idx"], j["name"], j["desc"], j["img"], Recipe.fromJson(j["recipe"]));
   }
 
   bool baseContains(int baseIdx) {
