@@ -22,38 +22,20 @@ class Alcohol extends StatelessWidget {
   }
 }
 
-class Drink {
-  final int idx;
-  final String name;
-  final String recipe;
+Future<List<DrinkInfo>> fetchDrink() async {
+  final response = await http.get(
+    Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
+  );
 
-  Drink({required this.idx, required this.name, required this.recipe});
+  var arr = json.decode(utf8.decode(response.bodyBytes))["results"];
 
-  factory Drink.fromJson(Map<String, dynamic> json) {
-    return Drink(idx: json["idx"], name: json["name"], recipe: json["recipe"]);
+  List<DrinkInfo> drinkInfo = <DrinkInfo>[];
+
+  for (var v in arr) {
+    drinkInfo.add(DrinkInfo.fromJson(v));
   }
-}
 
-void fetchDrink() {
-  final response = http.get(
-      Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
-      headers: {});
-
-/*
-  if (response.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    var arr =
-        jsonDecode(response.body)["results"] as List<Map<String, dynamic>>;
-    var result = <Drink>[];
-    for (var v in arr) {
-      result.add(Drink.fromJson(v));
-    }
-    return result;
-  } else {
-    throw "errror";
-  }
-  */
+  return drinkInfo;
 }
 
 class AlcoholDrinks extends StatefulWidget {
@@ -67,19 +49,25 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int page = 0;
   int idx = 0;
   String name = "";
-  late Future<List<Drink>> futureDrink;
+  List<DrinkInfo> drinkInfo = <DrinkInfo>[];
 
   @override
   void initState() {
     super.initState();
-    fetchDrink();
+    var result = fetchDrink();
+
+    result.then((value) {
+      setState(() {
+        drinkInfo = value;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    var k = <DrinkInfo>[];
-
-    k.add(
+    /*
+    drinkInfo.add(
+      
       const DrinkInfo(
         idx: 0,
         name: "진 토닉",
@@ -89,7 +77,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         desc: "진 과 토 닉 ",
       ),
     );
-    k.add(
+    drinkInfo.add(
       const DrinkInfo(
         idx: 1,
         name: "마티니",
@@ -99,7 +87,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         desc: "진 과 베 르 뭇",
       ),
     );
-    k.add(
+    drinkInfo.add(
       const DrinkInfo(
         idx: 2,
         name: "롱 아일랜드 아이스 티",
@@ -109,7 +97,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         desc: "길다",
       ),
     );
-    k.add(
+    drinkInfo.add(
       const DrinkInfo(
         idx: 3,
         name: "비트윈 더 쉬츠",
@@ -120,8 +108,10 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     );
 
     setState(() {
-      name = k[page].name;
+      name = drinkInfo[page].name;
     });
+
+*/
 
     return Scaffold(
       body: Center(
@@ -137,13 +127,13 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
-                    idx = k[inPage].idx;
-                    name = k[inPage].name;
+                    idx = drinkInfo[inPage].idx;
+                    name = drinkInfo[inPage].name;
                   });
                 },
                 controller: PageController(initialPage: page),
                 scrollDirection: Axis.vertical,
-                children: k,
+                children: drinkInfo,
               ),
               SocialPage(
                 idx: idx,
@@ -167,13 +157,9 @@ class DrinkInfo extends StatelessWidget {
     required this.recipe,
   }) : super(key: key);
 
-  factory DrinkInfo.fromDrink(Drink drink) {
+  factory DrinkInfo.fromJson(Map<String, dynamic> j) {
     return DrinkInfo(
-        idx: drink.idx,
-        name: drink.name,
-        img: "",
-        desc: "",
-        recipe: drink.recipe);
+        idx: j["idx"], name: j["name"], img: "", desc: "", recipe: j["recipe"]);
   }
 
   final int idx;
