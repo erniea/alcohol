@@ -52,9 +52,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   void setFilter(bool isOn, int baseIdx) {
     setState(() {
       if (isOn) {
-        baseFilter.remove(baseIdx);
-      } else {
         baseFilter.add(baseIdx);
+      } else {
+        baseFilter.remove(baseIdx);
       }
     });
   }
@@ -112,10 +112,14 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
     for (var drink in drinkCards) {
       bool baseContained = false;
-      for (int idx in baseFilter) {
-        baseContained |= drink.drink.baseContains(idx);
-      }
-      if (!baseContained && drink.drink.recipe.available) {
+      if (baseFilter.length > 0) {
+        for (int idx in baseFilter) {
+          baseContained |= drink.drink.baseContains(idx);
+        }
+        if (baseContained && drink.drink.recipe.available) {
+          drinksToShow.add(drink);
+        }
+      } else {
         drinksToShow.add(drink);
       }
     }

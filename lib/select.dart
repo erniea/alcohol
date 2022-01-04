@@ -47,7 +47,7 @@ class _SelectPageState extends State<SelectPage> {
   Widget build(BuildContext context) {
     List<Widget> widgets = <Widget>[];
     for (int i = 0; i < bases.length; ++i) {
-      checks.add(widget.baseFilter.contains(bases[i].idx) ? false : true);
+      checks.add(widget.baseFilter.contains(bases[i].idx));
 
       if (bases[i].inStock) {
         widgets.add(SwitchListTile(
