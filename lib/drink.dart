@@ -138,14 +138,14 @@ class RecipePage extends StatelessWidget {
       widgets.add(
         Text(r.toString(),
             style: r.base.inStock
-                ? const TextStyle()
-                : const TextStyle(decoration: TextDecoration.lineThrough)),
+                ? const TextStyle(fontSize: 20)
+                : const TextStyle(
+                    fontSize: 20, decoration: TextDecoration.lineThrough)),
       );
     }
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//      elevation: 20,
       child: InkWell(
         onTap: () {
           onTap();
