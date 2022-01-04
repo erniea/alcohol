@@ -1,6 +1,7 @@
 import 'dart:html';
 import 'dart:ui';
 import 'dart:convert';
+import 'package:alcohol/ds.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
@@ -34,6 +35,9 @@ Future<List<DrinkInfo>> fetchDrink() async {
   for (var v in arr) {
     drinkInfo.add(DrinkInfo.fromJson(v));
   }
+  drinkInfo.sort((DrinkInfo d1, DrinkInfo d2) {
+    return d1.recipe.available == d2.recipe.available ? -1 : 1;
+  });
 
   return drinkInfo;
 }
@@ -59,6 +63,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     result.then((value) {
       setState(() {
         drinkInfo = value;
+        idx = drinkInfo[0].idx;
       });
     });
   }
@@ -158,15 +163,19 @@ class DrinkInfo extends StatelessWidget {
   }) : super(key: key);
 
   factory DrinkInfo.fromJson(Map<String, dynamic> j) {
-    return DrinkInfo(
-        idx: j["idx"], name: j["name"], img: "", desc: "", recipe: j["recipe"]);
+    var idx = j["idx"];
+    var name = j["name"];
+
+    var recipe = Recipe.fromJson(j["recipe"]);
+
+    return DrinkInfo(idx: idx, name: name, img: "", desc: "", recipe: recipe);
   }
 
   final int idx;
   final String name;
   final String img;
   final String desc;
-  final String recipe;
+  final Recipe recipe;
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +239,7 @@ class DrinkCard extends StatefulWidget {
   final String name;
   final String img;
   final String desc;
-  final String recipe;
+  final Recipe recipe;
 
   @override
   State<StatefulWidget> createState() => _DrinkCardState();
@@ -295,7 +304,6 @@ class DetailPage extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 16),
                 child: Image(
                   image: NetworkImage(img),
-                  height: 600,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -334,16 +342,19 @@ class RecipePage extends StatelessWidget {
   }) : super(key: key);
 
   final String name;
-  final String recipe;
+  final Recipe recipe;
   final Function onTap;
 
   @override
   Widget build(BuildContext context) {
-    var recipes = recipe.split("\n");
-
     var widgets = <Widget>[];
-    for (var r in recipes) {
-      widgets.add(Text(r));
+    for (var r in recipe.elements) {
+      widgets.add(
+        Text(r.toString(),
+            style: r.base.inStock
+                ? const TextStyle()
+                : const TextStyle(decoration: TextDecoration.lineThrough)),
+      );
     }
 
     return Card(
