@@ -1,6 +1,3 @@
-import 'dart:html';
-import 'dart:ui';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class SocialPage extends StatelessWidget {

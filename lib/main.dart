@@ -1,8 +1,4 @@
-import 'dart:html';
-import 'dart:ui';
-import 'dart:convert';
 import 'package:alcohol/drink.dart';
-import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
 

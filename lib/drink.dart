@@ -1,5 +1,3 @@
-import 'dart:html';
-import 'dart:ui';
 import 'dart:convert';
 import 'package:alcohol/ds.dart';
 import 'package:http/http.dart' as http;
