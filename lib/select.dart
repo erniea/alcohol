@@ -53,10 +53,8 @@ class _SelectPageState extends State<SelectPage> {
         widgets.add(SwitchListTile(
           title: Text(bases[i].name),
           onChanged: (bool value) {
-            setState(() {
-              checks[i] = value;
-              widget.setFilter(value, bases[i].idx);
-            });
+            checks[i] = value;
+            widget.setFilter(value, bases[i].idx);
           },
           value: checks[i],
         ));
