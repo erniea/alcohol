@@ -1,40 +1,68 @@
+import 'package:alcohol/ds.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class SelectPage extends StatelessWidget {
+import 'package:http/http.dart' as http;
+
+Future<List<Base>> fetchBase() async {
+  final response = await http.get(
+    Uri.parse("https://alcohol.bada.works/api/bases/?format=json"),
+  );
+  var arr = json.decode(utf8.decode(response.bodyBytes))["results"];
+
+  List<Base> bases = <Base>[];
+
+  for (var v in arr) {
+    bases.add(Base.fromJson(v));
+  }
+  return bases;
+}
+
+class SelectPage extends StatefulWidget {
   const SelectPage({Key? key}) : super(key: key);
 
   @override
+  State<SelectPage> createState() => _SelectPageState();
+}
+
+class _SelectPageState extends State<SelectPage> {
+  List<Base> bases = <Base>[];
+  List<bool> checks = <bool>[];
+
+  @override
+  void initState() {
+    super.initState();
+    var result = fetchBase();
+    result.then((value) {
+      setState(() {
+        bases = value;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    List<Widget> widgets = <Widget>[];
+    for (int i = 0; i < bases.length; ++i) {
+      checks.add(true);
+
+      if (bases[i].inStock) {
+        widgets.add(SwitchListTile(
+          title: Text(bases[i].name),
+          onChanged: (bool value) {
+            setState(() {
+              checks[i] = value;
+            });
+          },
+          value: checks[i],
+        ));
+      }
+    }
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//      elevation: 1,
-      child: Column(
-        children: const <Widget>[
-          Card(
-            child: ListTile(
-              title: Text("진"),
-              subtitle: Text("맛있다"),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text("럼"),
-              subtitle: Text("맛있다"),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              title: Text("보드카"),
-              subtitle: Text("맛있다"),
-            ),
-          ),
-          Card(
-              child: ListTile(
-            title: Text("데킬라"),
-            subtitle: Text("맛있다"),
-          )),
-        ],
-      ),
+      child: Container(
+          padding: const EdgeInsets.all(10), child: Column(children: widgets)),
     );
   }
 }
