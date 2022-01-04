@@ -136,8 +136,8 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
-                    idx = drinkCards[inPage].drink.idx;
-                    name = drinkCards[inPage].drink.name;
+                    idx = drinksToShow[inPage].drink.idx;
+                    name = drinksToShow[inPage].drink.name;
                   });
                 },
                 controller: PageController(initialPage: page),
