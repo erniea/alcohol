@@ -135,12 +135,21 @@ class RecipePage extends StatelessWidget {
   Widget build(BuildContext context) {
     var widgets = <Widget>[];
     for (var r in drink.recipe.elements) {
+      var style = r.base.inStock
+          ? const TextStyle(fontSize: 20)
+          : const TextStyle(
+              fontSize: 20, decoration: TextDecoration.lineThrough);
       widgets.add(
-        Text(r.toString(),
-            style: r.base.inStock
-                ? const TextStyle(fontSize: 20)
-                : const TextStyle(
-                    fontSize: 20, decoration: TextDecoration.lineThrough)),
+        Container(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Row(
+            children: [
+              Text(r.base.name, style: style),
+              const Expanded(child: Text("")),
+              Text(r.volume, style: style)
+            ],
+          ),
+        ),
       );
     }
 
@@ -150,13 +159,14 @@ class RecipePage extends StatelessWidget {
         onTap: () {
           onTap();
         },
-        child: Column(
-          children: <Widget>[
-                ListTile(
-                  title: Text(drink.name),
-                ),
-              ] +
-              widgets,
+        child: Container(
+          padding: const EdgeInsets.all(30),
+          child: Column(
+            children: <Widget>[
+                  Text(drink.name),
+                ] +
+                widgets,
+          ),
         ),
       ),
     );
