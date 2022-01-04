@@ -38,3 +38,17 @@ class Recipe {
   }
   Recipe(this.elements, this.available);
 }
+
+class Drink {
+  final int idx;
+  final String name;
+  final String desc;
+  final String img;
+  final Recipe recipe;
+
+  Drink(this.idx, this.name, this.desc, this.img, this.recipe);
+
+  factory Drink.fromJson(Map<String, dynamic> j) {
+    return Drink(j["idx"], j["name"], "", "", Recipe.fromJson(j["recipe"]));
+  }
+}

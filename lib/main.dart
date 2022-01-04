@@ -33,10 +33,14 @@ Future<List<DrinkInfo>> fetchDrink() async {
   List<DrinkInfo> drinkInfo = <DrinkInfo>[];
 
   for (var v in arr) {
-    drinkInfo.add(DrinkInfo.fromJson(v));
+    drinkInfo.add(
+      DrinkInfo(
+        drink: Drink.fromJson(v),
+      ),
+    );
   }
   drinkInfo.sort((DrinkInfo d1, DrinkInfo d2) {
-    return d1.recipe.available == d2.recipe.available ? -1 : 1;
+    return d1.drink.recipe.available == d2.drink.recipe.available ? -1 : 1;
   });
 
   return drinkInfo;
@@ -63,7 +67,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     result.then((value) {
       setState(() {
         drinkInfo = value;
-        idx = drinkInfo[0].idx;
+        idx = drinkInfo[0].drink.idx;
       });
     });
   }
@@ -132,8 +136,8 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     page = inPage;
-                    idx = drinkInfo[inPage].idx;
-                    name = drinkInfo[inPage].name;
+                    idx = drinkInfo[inPage].drink.idx;
+                    name = drinkInfo[inPage].drink.name;
                   });
                 },
                 controller: PageController(initialPage: page),
@@ -155,35 +159,15 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 class DrinkInfo extends StatelessWidget {
   const DrinkInfo({
     Key? key,
-    required this.idx,
-    required this.name,
-    required this.img,
-    required this.desc,
-    required this.recipe,
+    required this.drink,
   }) : super(key: key);
 
-  factory DrinkInfo.fromJson(Map<String, dynamic> j) {
-    var idx = j["idx"];
-    var name = j["name"];
-
-    var recipe = Recipe.fromJson(j["recipe"]);
-
-    return DrinkInfo(idx: idx, name: name, img: "", desc: "", recipe: recipe);
-  }
-
-  final int idx;
-  final String name;
-  final String img;
-  final String desc;
-  final Recipe recipe;
+  final Drink drink;
 
   @override
   Widget build(BuildContext context) {
     return DrinkCard(
-      name: name,
-      img: img,
-      desc: desc,
-      recipe: recipe,
+      drink: drink,
     );
   }
 }
@@ -228,19 +212,12 @@ class SelectPage extends StatelessWidget {
 }
 
 class DrinkCard extends StatefulWidget {
-  const DrinkCard(
-      {Key? key,
-      required this.name,
-      required this.img,
-      required this.desc,
-      required this.recipe})
-      : super(key: key);
+  const DrinkCard({
+    Key? key,
+    required this.drink,
+  }) : super(key: key);
 
-  final String name;
-  final String img;
-  final String desc;
-  final Recipe recipe;
-
+  final Drink drink;
   @override
   State<StatefulWidget> createState() => _DrinkCardState();
 }
@@ -257,14 +234,11 @@ class _DrinkCardState extends State<DrinkCard> {
       duration: const Duration(milliseconds: 500),
       child: _isFront
           ? DetailPage(
-              name: widget.name,
-              img: widget.img,
-              desc: widget.desc,
+              drink: widget.drink,
               onTap: onTap,
             )
           : RecipePage(
-              name: widget.name,
-              recipe: widget.recipe,
+              drink: widget.drink,
               onTap: onTap,
             ),
     ));
@@ -279,15 +253,11 @@ class _DrinkCardState extends State<DrinkCard> {
 class DetailPage extends StatelessWidget {
   const DetailPage({
     Key? key,
-    required this.name,
-    required this.img,
-    required this.desc,
+    required this.drink,
     required this.onTap,
   }) : super(key: key);
 
-  final String name;
-  final String img;
-  final String desc;
+  final Drink drink;
   final Function onTap;
   @override
   Widget build(BuildContext context) {
@@ -303,14 +273,14 @@ class DetailPage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.only(top: 16),
                 child: Image(
-                  image: NetworkImage(img),
+                  image: NetworkImage(drink.img),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
             ListTile(
-              title: Text(name),
-              subtitle: Text(desc),
+              title: Text(drink.name),
+              subtitle: Text(drink.desc),
             ),
             Row(
               children: <Widget>[
@@ -336,19 +306,17 @@ class DetailPage extends StatelessWidget {
 class RecipePage extends StatelessWidget {
   const RecipePage({
     Key? key,
-    required this.name,
-    required this.recipe,
+    required this.drink,
     required this.onTap,
   }) : super(key: key);
 
-  final String name;
-  final Recipe recipe;
+  final Drink drink;
   final Function onTap;
 
   @override
   Widget build(BuildContext context) {
     var widgets = <Widget>[];
-    for (var r in recipe.elements) {
+    for (var r in drink.recipe.elements) {
       widgets.add(
         Text(r.toString(),
             style: r.base.inStock
@@ -367,7 +335,7 @@ class RecipePage extends StatelessWidget {
         child: Column(
           children: <Widget>[
                 ListTile(
-                  title: Text(name),
+                  title: Text(drink.name),
                 ),
               ] +
               widgets,
