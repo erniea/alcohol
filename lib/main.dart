@@ -15,9 +15,14 @@ class Alcohol extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'alcohol',
-      home: AlcoholDrinks(),
+      initialRoute: "/",
+      routes: {
+        "/": (context) => const AlcoholDrinks(),
+        "/admin": (context) => const AlcoholAdmin(),
+      },
+      //home: AlcoholDrinks(),
     );
   }
 }
@@ -154,6 +159,34 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
               )
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class AlcoholAdmin extends StatelessWidget {
+  const AlcoholAdmin({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints.expand(),
+          margin: const EdgeInsets.all(30),
+          child: PageView(children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Text("hello world"),
+            ),
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Text("hello world2"),
+            ),
+          ]),
         ),
       ),
     );
