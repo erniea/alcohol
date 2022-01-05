@@ -20,7 +20,7 @@ Future<List<DrinkCard>> fetchDrink() async {
     );
   }
   drinkCard.sort((DrinkCard d1, DrinkCard d2) {
-    return d1.drink.recipe.available == d2.drink.recipe.available ? -1 : 1;
+    return d1.drink.recipe.available == d2.drink.recipe.available ? 1 : -1;
   });
 
   return drinkCard;

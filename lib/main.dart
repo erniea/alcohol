@@ -129,18 +129,24 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
       }
     }
     return Scaffold(
+      drawer: Drawer(
+        child: SelectPage(
+          baseFilter: baseFilter,
+          setFilter: setFilter,
+        ),
+      ),
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
           child: PageView(
-            controller: PageController(initialPage: 1),
+            controller: PageController(initialPage: 0),
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              SelectPage(
+              /*      SelectPage(
                 baseFilter: baseFilter,
                 setFilter: setFilter,
-              ),
+              ),*/
               PageView(
                 onPageChanged: (int inPage) {
                   setState(() {
