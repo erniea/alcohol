@@ -67,7 +67,8 @@ class _SelectPageState extends State<SelectPage> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-          padding: const EdgeInsets.all(10), child: Column(children: widgets)),
+          padding: const EdgeInsets.all(10),
+          child: ListView(children: widgets)),
     );
   }
 }
