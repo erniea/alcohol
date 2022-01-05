@@ -1,5 +1,5 @@
+import 'package:alcohol/baseMgr.dart';
 import 'package:alcohol/drink.dart';
-import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
 
@@ -176,11 +176,7 @@ class AlcoholAdmin extends StatelessWidget {
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
           child: PageView(children: [
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Text("hello world"),
-            ),
+            const BaseMgr(),
             Card(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
