@@ -34,7 +34,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int idx = 0;
   String name = "";
   List<DrinkCard> drinkCards = <DrinkCard>[];
-  List<int> baseFilter = <int>[];
+  Set<int> baseFilter = {};
   @override
   void initState() {
     super.initState();
@@ -112,7 +112,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
     for (var drink in drinkCards) {
       bool baseContained = false;
-      if (baseFilter.length > 0) {
+      if (baseFilter.isNotEmpty) {
         for (int idx in baseFilter) {
           baseContained |= drink.drink.baseContains(idx);
         }

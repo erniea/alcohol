@@ -22,7 +22,7 @@ class SelectPage extends StatefulWidget {
   const SelectPage(
       {Key? key, required this.baseFilter, required this.setFilter})
       : super(key: key);
-  final List<int> baseFilter;
+  final Set<int> baseFilter;
   final Function setFilter;
   @override
   State<SelectPage> createState() => _SelectPageState();
@@ -39,6 +39,7 @@ class _SelectPageState extends State<SelectPage> {
     result.then((value) {
       setState(() {
         bases = value;
+        checks = List.filled(bases.length, false);
       });
     });
   }
@@ -47,17 +48,19 @@ class _SelectPageState extends State<SelectPage> {
   Widget build(BuildContext context) {
     List<Widget> widgets = <Widget>[];
     for (int i = 0; i < bases.length; ++i) {
-      checks.add(widget.baseFilter.contains(bases[i].idx));
+      checks[i] = widget.baseFilter.contains(bases[i].idx);
 
       if (bases[i].inStock) {
-        widgets.add(SwitchListTile(
-          title: Text(bases[i].name),
-          onChanged: (bool value) {
-            checks[i] = value;
-            widget.setFilter(value, bases[i].idx);
-          },
-          value: checks[i],
-        ));
+        widgets.add(
+          SwitchListTile(
+            title: Text(bases[i].name),
+            onChanged: (bool value) {
+              checks[i] = value;
+              widget.setFilter(value, bases[i].idx);
+            },
+            value: checks[i],
+          ),
+        );
       }
     }
 
