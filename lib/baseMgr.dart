@@ -71,7 +71,7 @@ class _BaseInputState extends State<BaseInput> {
   bool isInStock = true;
   TextEditingController controller = TextEditingController();
 
-  void OnCommit() {
+  void OnCommit(BuildContext context) {
     log(controller.text);
 
     Navigator.pop(context);
@@ -87,7 +87,7 @@ class _BaseInputState extends State<BaseInput> {
             TextField(
               controller: controller,
               autofocus: true,
-              onSubmitted: (value) => OnCommit(),
+              onSubmitted: (value) => OnCommit(context),
             ),
             SwitchListTile(
                 title: const Text("재고 여부"),
@@ -98,7 +98,7 @@ class _BaseInputState extends State<BaseInput> {
                   });
                 }),
             ElevatedButton(
-              onPressed: () => OnCommit,
+              onPressed: () => OnCommit(context),
               child: const Text("추가"),
             )
           ],
