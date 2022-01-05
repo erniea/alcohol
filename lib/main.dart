@@ -171,8 +171,31 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   }
 }
 
-class AlcoholAdmin extends StatelessWidget {
+class AlcoholAdmin extends StatefulWidget {
   const AlcoholAdmin({Key? key}) : super(key: key);
+
+  @override
+  State<AlcoholAdmin> createState() => _AlcoholAdminState();
+}
+
+class _AlcoholAdminState extends State<AlcoholAdmin> {
+  int page = 0;
+
+  Widget buildBottomSheet(BuildContext context) {
+    switch (page) {
+      case 0:
+        return BaseInput();
+
+      default:
+    }
+
+    return Column(
+      children: [
+        ElevatedButton(onPressed: () {}, child: Text(page.toString())),
+        ElevatedButton(onPressed: () {}, child: const Text("레시피")),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,15 +204,28 @@ class AlcoholAdmin extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
-          child: PageView(children: [
-            const BaseMgr(),
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Text("hello world2"),
-            ),
-          ]),
+          child: PageView(
+            children: [
+              const BaseMgr(),
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                child: Text("hello world2"),
+              ),
+            ],
+            onPageChanged: (inPage) {
+              setState(() {
+                page = inPage;
+              });
+            },
+          ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(context: context, builder: buildBottomSheet);
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:flutter/material.dart';
@@ -49,22 +51,57 @@ class _BaseMgrState extends State<BaseMgr> {
       );
     }
 
-    widgets.add(FloatingActionButton(
-        onPressed: () {
-          var result = fetchBase();
-          result.then((value) {
-            setState(() {
-              bases = value;
-            });
-          });
-        },
-        child: Icon(Icons.add)));
-
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListView(
         children: widgets,
       ),
     );
+  }
+}
+
+class BaseInput extends StatefulWidget {
+  const BaseInput({Key? key}) : super(key: key);
+
+  @override
+  State<BaseInput> createState() => _BaseInputState();
+}
+
+class _BaseInputState extends State<BaseInput> {
+  bool isInStock = true;
+  TextEditingController controller = TextEditingController();
+
+  void OnCommit() {
+    log(controller.text);
+
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: controller,
+              autofocus: true,
+              onSubmitted: (value) => OnCommit(),
+            ),
+            SwitchListTile(
+                title: const Text("재고 여부"),
+                value: isInStock,
+                onChanged: (value) {
+                  setState(() {
+                    isInStock = value;
+                  });
+                }),
+            ElevatedButton(
+              onPressed: () => OnCommit,
+              child: const Text("추가"),
+            )
+          ],
+        ));
   }
 }
