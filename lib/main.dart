@@ -1,5 +1,6 @@
 import 'package:alcohol/baseMgr.dart';
 import 'package:alcohol/drink.dart';
+import 'package:alcohol/drinkMgr.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
 
@@ -47,7 +48,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 
     result.then((value) {
       setState(() {
-        drinkCards = value;
+        for (var d in value) {
+          drinkCards.add(DrinkCard(drink: d));
+        }
         idx = drinkCards[0].drink.idx;
         name = drinkCards[0].drink.name;
       });
@@ -186,7 +189,6 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
     switch (page) {
       case 0:
         return BaseInput(baseMgrState: baseMgrState);
-
       default:
     }
 
@@ -206,15 +208,12 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
           child: PageView(
+            controller: PageController(initialPage: 1),
             children: [
               BaseMgr(
                 key: baseMgrState,
               ),
-              Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                child: Text("hello world2"),
-              ),
+              const DrinkMgr()
             ],
             onPageChanged: (inPage) {
               setState(() {

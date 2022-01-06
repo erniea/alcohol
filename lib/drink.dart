@@ -3,27 +3,25 @@ import 'package:alcohol/ds.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
-Future<List<DrinkCard>> fetchDrink() async {
+Future<List<Drink>> fetchDrink() async {
   final response = await http.get(
     Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
   );
 
   var arr = json.decode(utf8.decode(response.bodyBytes))["results"];
 
-  List<DrinkCard> drinkCard = <DrinkCard>[];
+  List<Drink> drinks = <Drink>[];
 
   for (var v in arr) {
-    drinkCard.add(
-      DrinkCard(
-        drink: Drink.fromJson(v),
-      ),
+    drinks.add(
+      Drink.fromJson(v),
     );
   }
-  drinkCard.sort((DrinkCard d1, DrinkCard d2) {
-    return d1.drink.recipe.available == d2.drink.recipe.available ? 1 : -1;
+  drinks.sort((Drink d1, Drink d2) {
+    return d1.recipe.available == d2.recipe.available ? 1 : -1;
   });
 
-  return drinkCard;
+  return drinks;
 }
 
 class DrinkCard extends StatefulWidget {
