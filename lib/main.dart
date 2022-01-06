@@ -69,54 +69,6 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    drinkInfo.add(
-      
-      const DrinkInfo(
-        idx: 0,
-        name: "진 토닉",
-        img:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gin_and_Tonic_with_ingredients.jpg/1280px-Gin_and_Tonic_with_ingredients.jpg",
-        recipe: "이 거\n저거\n그거",
-        desc: "진 과 토 닉 ",
-      ),
-    );
-    drinkInfo.add(
-      const DrinkInfo(
-        idx: 1,
-        name: "마티니",
-        img:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/15-09-26-RalfR-WLC-0084.jpg/220px-15-09-26-RalfR-WLC-0084.jpg",
-        recipe: "진\n베르뭇",
-        desc: "진 과 베 르 뭇",
-      ),
-    );
-    drinkInfo.add(
-      const DrinkInfo(
-        idx: 2,
-        name: "롱 아일랜드 아이스 티",
-        img:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Long_Island_Iced_Tea_2008.jpg/220px-Long_Island_Iced_Tea_2008.jpg",
-        recipe: "진\n럼\n보드카\n데킬라\n기타등등",
-        desc: "길다",
-      ),
-    );
-    drinkInfo.add(
-      const DrinkInfo(
-        idx: 3,
-        name: "비트윈 더 쉬츠",
-        img: "",
-        recipe: "브랜디\n럼\n트리플 섹\n레몬주스",
-        desc: "쓰까무라",
-      ),
-    );
-
-    setState(() {
-      name = drinkInfo[page].name;
-    });
-
-*/
-
     List<DrinkCard> drinksToShow = <DrinkCard>[];
     for (var drink in drinkCards) {
       bool baseContained = false;
@@ -146,10 +98,6 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
             controller: PageController(initialPage: 0),
             scrollDirection: Axis.horizontal,
             children: <Widget>[
-              /*      SelectPage(
-                baseFilter: baseFilter,
-                setFilter: setFilter,
-              ),*/
               PageView(
                 onPageChanged: (int inPage) {
                   setState(() {
@@ -184,11 +132,15 @@ class AlcoholAdmin extends StatefulWidget {
 class _AlcoholAdminState extends State<AlcoholAdmin> {
   int page = 0;
   GlobalKey<BaseMgrState> baseMgrState = GlobalKey();
+  GlobalKey<DrinkMgrState> drinkMgrState = GlobalKey();
 
   Widget buildBottomSheet(BuildContext context) {
     switch (page) {
       case 0:
         return BaseInput(baseMgrState: baseMgrState);
+
+      case 1:
+        return DrinkInput(drinkMgrState: drinkMgrState);
       default:
     }
 
@@ -213,7 +165,9 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
               BaseMgr(
                 key: baseMgrState,
               ),
-              const DrinkMgr()
+              DrinkMgr(
+                key: drinkMgrState,
+              )
             ],
             onPageChanged: (inPage) {
               setState(() {

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:flutter/material.dart';
@@ -54,6 +52,14 @@ class BaseMgr extends StatefulWidget {
 class BaseMgrState extends State<BaseMgr> {
   List<Base> bases = <Base>[];
   List<bool> checks = <bool>[];
+
+  void addBase(Base b) {
+    setState(() {
+      bases.add(b);
+      checks.add(b.inStock);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -65,13 +71,6 @@ class BaseMgrState extends State<BaseMgr> {
       setState(() {
         bases = value;
       });
-    });
-  }
-
-  void addBase(Base b) {
-    setState(() {
-      bases.add(b);
-      checks.add(b.inStock);
     });
   }
 
@@ -121,7 +120,7 @@ class _BaseInputState extends State<BaseInput> {
   bool inStock = true;
   TextEditingController controller = TextEditingController();
 
-  void onCommit(BuildContext context) {
+  void onSubmit(BuildContext context) {
     if (controller.text.isNotEmpty) {
       var response = addBase(controller.text, inStock);
 
@@ -144,7 +143,7 @@ class _BaseInputState extends State<BaseInput> {
             TextField(
               controller: controller,
               autofocus: true,
-              onSubmitted: (value) => onCommit(context),
+              onSubmitted: (value) => onSubmit(context),
             ),
             SwitchListTile(
                 title: const Text("재고 여부"),
@@ -155,7 +154,7 @@ class _BaseInputState extends State<BaseInput> {
                   });
                 }),
             ElevatedButton(
-              onPressed: () => onCommit(context),
+              onPressed: () => onSubmit(context),
               child: const Text("추가"),
             )
           ],
