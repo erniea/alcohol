@@ -180,11 +180,12 @@ class AlcoholAdmin extends StatefulWidget {
 
 class _AlcoholAdminState extends State<AlcoholAdmin> {
   int page = 0;
+  GlobalKey<BaseMgrState> baseMgrState = GlobalKey();
 
   Widget buildBottomSheet(BuildContext context) {
     switch (page) {
       case 0:
-        return BaseInput();
+        return BaseInput(baseMgrState: baseMgrState);
 
       default:
     }
@@ -206,7 +207,9 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
           margin: const EdgeInsets.all(30),
           child: PageView(
             children: [
-              const BaseMgr(),
+              BaseMgr(
+                key: baseMgrState,
+              ),
               Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)),

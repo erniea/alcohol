@@ -31,14 +31,27 @@ Future<http.Response> updateBaseName(int idx, String name) {
   );
 }
 
+Future<http.Response> addBase(String name, bool inStock) {
+  return http.post(
+    Uri.parse('https://alcohol.bada.works/api/postbase/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'name': name,
+      'instock': inStock.toString(),
+    }),
+  );
+}
+
 class BaseMgr extends StatefulWidget {
   const BaseMgr({Key? key}) : super(key: key);
 
   @override
-  _BaseMgrState createState() => _BaseMgrState();
+  BaseMgrState createState() => BaseMgrState();
 }
 
-class _BaseMgrState extends State<BaseMgr> {
+class BaseMgrState extends State<BaseMgr> {
   List<Base> bases = <Base>[];
   List<bool> checks = <bool>[];
   @override
@@ -52,6 +65,13 @@ class _BaseMgrState extends State<BaseMgr> {
       setState(() {
         bases = value;
       });
+    });
+  }
+
+  void addBase(Base b) {
+    setState(() {
+      bases.add(b);
+      checks.add(b.inStock);
     });
   }
 
@@ -89,20 +109,29 @@ class _BaseMgrState extends State<BaseMgr> {
 }
 
 class BaseInput extends StatefulWidget {
-  const BaseInput({Key? key}) : super(key: key);
+  const BaseInput({Key? key, required this.baseMgrState}) : super(key: key);
+
+  final GlobalKey<BaseMgrState> baseMgrState;
 
   @override
   State<BaseInput> createState() => _BaseInputState();
 }
 
 class _BaseInputState extends State<BaseInput> {
-  bool isInStock = true;
+  bool inStock = true;
   TextEditingController controller = TextEditingController();
 
   void onCommit(BuildContext context) {
-    log(controller.text);
+    if (controller.text.isNotEmpty) {
+      var response = addBase(controller.text, inStock);
 
-    Navigator.pop(context);
+      response.then((value) {
+        var j = json.decode(utf8.decode(value.bodyBytes));
+        widget.baseMgrState.currentState
+            ?.addBase(Base(j["idx"], j["name"], j["instock"]));
+      });
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -119,10 +148,10 @@ class _BaseInputState extends State<BaseInput> {
             ),
             SwitchListTile(
                 title: const Text("재고 여부"),
-                value: isInStock,
+                value: inStock,
                 onChanged: (value) {
                   setState(() {
-                    isInStock = value;
+                    inStock = value;
                   });
                 }),
             ElevatedButton(
