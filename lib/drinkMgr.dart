@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:alcohol/drink.dart';
 import 'package:alcohol/ds.dart';
+import 'package:alcohol/select.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
@@ -30,6 +31,7 @@ class DrinkMgr extends StatefulWidget {
 
 class DrinkMgrState extends State<DrinkMgr> {
   List<Drink> _drinks = [];
+  List<Base> _bases = [];
 
   void addDrink(Drink d) {
     setState(() {
@@ -41,10 +43,16 @@ class DrinkMgrState extends State<DrinkMgr> {
   void initState() {
     super.initState();
 
-    var response = fetchDrink();
-    response.then((value) {
+    var drinkResponse = fetchDrink();
+    drinkResponse.then((value) {
       setState(() {
         _drinks = value;
+      });
+    });
+    var baseResponse = fetchBase();
+    baseResponse.then((value) {
+      setState(() {
+        _bases = value;
       });
     });
   }
@@ -57,7 +65,16 @@ class DrinkMgrState extends State<DrinkMgr> {
       widgets.add(
         Card(
           child: InkWell(
-            onTap: () {},
+            onTap: () {
+              showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return RecipeInput(
+                      recipe: d.recipe,
+                      bases: _bases,
+                    );
+                  });
+            },
             child: ListTile(
               title: Text(d.name),
             ),
@@ -82,11 +99,14 @@ class DrinkInput extends StatefulWidget {
 }
 
 class _DrinkInputState extends State<DrinkInput> {
-  final TextEditingController controller = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController imgController = TextEditingController();
+  final TextEditingController descController = TextEditingController();
 
   void onSubmit(BuildContext context) {
-    if (controller.text.isNotEmpty) {
-      var response = addDrink(controller.text, "", "");
+    if (nameController.text.isNotEmpty) {
+      var response = addDrink(
+          nameController.text, imgController.text, descController.text);
       response.then((value) {
         var j = json.decode(utf8.decode(value.bodyBytes));
         var recipe = Recipe([], true);
@@ -105,15 +125,91 @@ class _DrinkInputState extends State<DrinkInput> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
-            controller: controller,
+            controller: nameController,
             autofocus: true,
-            onSubmitted: (value) => onSubmit(context),
+            decoration: const InputDecoration(hintText: 'Name'),
+          ),
+          TextField(
+            controller: imgController,
+            decoration: const InputDecoration(hintText: 'Img'),
+          ),
+          TextField(
+            controller: descController,
+            decoration: const InputDecoration(hintText: 'Desc'),
           ),
           ElevatedButton(
             onPressed: () => onSubmit(context),
             child: const Text("추가"),
           )
         ],
+      ),
+    );
+  }
+}
+
+class RecipeInput extends StatefulWidget {
+  const RecipeInput({Key? key, required this.recipe, required this.bases})
+      : super(key: key);
+  final Recipe recipe;
+  final List<Base> bases;
+  @override
+  _RecipeInputState createState() => _RecipeInputState();
+}
+
+class _RecipeInputState extends State<RecipeInput> {
+  Base dropdownvalue = Base(-1, "none", true);
+  List<int> selected = [];
+
+  @override
+  void initState() {
+    super.initState();
+    for (var r in widget.recipe.elements) {
+      selected.add(r.base.idx);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> widgets = [];
+    List<Base> items = List.from(widget.bases);
+
+    for (int i = 0; i < widget.recipe.elements.length; ++i) {
+      widgets.add(Card(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        DropdownButton(
+          value: selected[i],
+          items: items.map((Base e) {
+            return DropdownMenuItem(
+              child: Text(e.name),
+              value: e.idx,
+            );
+          }).toList(),
+          onChanged: (int? v) {
+            setState(() {
+              selected[i] = v!;
+            });
+          },
+        ),
+        TextFormField(
+          initialValue: widget.recipe.elements[i].volume,
+        )
+      ])));
+    }
+    return Container(
+      padding: const EdgeInsets.all(10),
+      child: ListView(
+        children: widgets +
+            [
+              ElevatedButton(
+                onPressed: () {},
+                child: const Icon(Icons.add),
+              ),
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text("완료"),
+              )
+            ],
       ),
     );
   }
