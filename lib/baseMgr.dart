@@ -7,6 +7,30 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+Future<http.Response> updateBaseInStock(int idx, bool inStock) {
+  return http.patch(
+    Uri.parse('https://alcohol.bada.works/api/postbase/$idx/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'instock': inStock.toString(),
+    }),
+  );
+}
+
+Future<http.Response> updateBaseName(int idx, String name) {
+  return http.patch(
+    Uri.parse('https://alcohol.bada.works/api/postbase/$idx/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'name': name,
+    }),
+  );
+}
+
 class BaseMgr extends StatefulWidget {
   const BaseMgr({Key? key}) : super(key: key);
 
@@ -40,12 +64,16 @@ class _BaseMgrState extends State<BaseMgr> {
         SwitchListTile(
           title: TextFormField(
             initialValue: bases[i].name,
+            onChanged: (value) {
+              updateBaseName(bases[i].idx, value);
+            },
           ),
           value: checks[i],
           onChanged: (value) {
             setState(() {
               checks[i] = value;
             });
+            updateBaseInStock(bases[i].idx, value);
           },
         ),
       );
@@ -71,7 +99,7 @@ class _BaseInputState extends State<BaseInput> {
   bool isInStock = true;
   TextEditingController controller = TextEditingController();
 
-  void OnCommit(BuildContext context) {
+  void onCommit(BuildContext context) {
     log(controller.text);
 
     Navigator.pop(context);
@@ -87,7 +115,7 @@ class _BaseInputState extends State<BaseInput> {
             TextField(
               controller: controller,
               autofocus: true,
-              onSubmitted: (value) => OnCommit(context),
+              onSubmitted: (value) => onCommit(context),
             ),
             SwitchListTile(
                 title: const Text("재고 여부"),
@@ -98,7 +126,7 @@ class _BaseInputState extends State<BaseInput> {
                   });
                 }),
             ElevatedButton(
-              onPressed: () => OnCommit(context),
+              onPressed: () => onCommit(context),
               child: const Text("추가"),
             )
           ],
