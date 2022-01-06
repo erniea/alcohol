@@ -22,6 +22,20 @@ Future<http.Response> addDrink(String name, String img, String desc) {
   );
 }
 
+Future<http.Response> addRecipe(int drinkIdx, int baseIdx, String volume) {
+  return http.post(
+    Uri.parse('https://alcohol.bada.works/api/postrecipe/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'drink': drinkIdx,
+      'base': baseIdx,
+      'volume': volume,
+    }),
+  );
+}
+
 class DrinkMgr extends StatefulWidget {
   const DrinkMgr({Key? key}) : super(key: key);
 
@@ -70,7 +84,7 @@ class DrinkMgrState extends State<DrinkMgr> {
                   context: context,
                   builder: (BuildContext context) {
                     return RecipeInput(
-                      recipe: d.recipe,
+                      drink: d,
                       bases: _bases,
                     );
                   });
@@ -148,22 +162,21 @@ class _DrinkInputState extends State<DrinkInput> {
 }
 
 class RecipeInput extends StatefulWidget {
-  const RecipeInput({Key? key, required this.recipe, required this.bases})
+  const RecipeInput({Key? key, required this.drink, required this.bases})
       : super(key: key);
-  final Recipe recipe;
+  final Drink drink;
   final List<Base> bases;
   @override
   _RecipeInputState createState() => _RecipeInputState();
 }
 
 class _RecipeInputState extends State<RecipeInput> {
-  Base dropdownvalue = Base(-1, "none", true);
   List<int> selected = [];
 
   @override
   void initState() {
     super.initState();
-    for (var r in widget.recipe.elements) {
+    for (var r in widget.drink.recipe.elements) {
       selected.add(r.base.idx);
     }
   }
@@ -172,7 +185,7 @@ class _RecipeInputState extends State<RecipeInput> {
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
 
-    for (int i = 0; i < widget.recipe.elements.length; ++i) {
+    for (int i = 0; i < widget.drink.recipe.elements.length; ++i) {
       widgets.add(Card(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -191,7 +204,7 @@ class _RecipeInputState extends State<RecipeInput> {
           },
         ),
         TextFormField(
-          initialValue: widget.recipe.elements[i].volume,
+          initialValue: widget.drink.recipe.elements[i].volume,
         )
       ])));
     }
@@ -201,7 +214,15 @@ class _RecipeInputState extends State<RecipeInput> {
         children: widgets +
             [
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  var v = addRecipe(widget.drink.idx, 1, "");
+                  v.then((value) {
+                    log(value.body);
+                  });
+                  setState(() {
+                    selected.add(1);
+                  });
+                },
                 child: const Icon(Icons.add),
               ),
               ElevatedButton(
