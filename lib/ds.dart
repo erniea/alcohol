@@ -10,13 +10,14 @@ class Base {
 }
 
 class RecipeElement {
+  final int idx;
   final Base base;
   final String volume;
 
-  RecipeElement(this.base, this.volume);
+  RecipeElement(this.idx, this.base, this.volume);
 
   factory RecipeElement.fromJson(Map<String, dynamic> j) {
-    return RecipeElement(Base.fromJson(j["base"]), j["volume"]);
+    return RecipeElement(j["idx"], Base.fromJson(j["base"]), j["volume"]);
   }
   @override
   String toString() {

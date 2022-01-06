@@ -171,7 +171,6 @@ class _RecipeInputState extends State<RecipeInput> {
   @override
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
-    List<Base> items = List.from(widget.bases);
 
     for (int i = 0; i < widget.recipe.elements.length; ++i) {
       widgets.add(Card(
@@ -179,7 +178,7 @@ class _RecipeInputState extends State<RecipeInput> {
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         DropdownButton(
           value: selected[i],
-          items: items.map((Base e) {
+          items: widget.bases.map((Base e) {
             return DropdownMenuItem(
               child: Text(e.name),
               value: e.idx,
