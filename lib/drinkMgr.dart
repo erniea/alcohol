@@ -36,6 +36,28 @@ Future<http.Response> addRecipe(int drinkIdx, int baseIdx, String volume) {
   );
 }
 
+Future<http.Response> deleteRecipe(int recipeIdx) {
+  return http.delete(
+    Uri.parse('https://alcohol.bada.works/api/postrecipe/$recipeIdx/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+  );
+}
+
+Future<http.Response> updateRecipe(int recipeIdx, int baseIdx, String volume) {
+  return http.patch(
+    Uri.parse('https://alcohol.bada.works/api/postrecipe/$recipeIdx/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'base': baseIdx,
+      'volume': volume,
+    }),
+  );
+}
+
 class DrinkMgr extends StatefulWidget {
   const DrinkMgr({Key? key}) : super(key: key);
 
@@ -46,11 +68,36 @@ class DrinkMgr extends StatefulWidget {
 class DrinkMgrState extends State<DrinkMgr> {
   List<Drink> _drinks = [];
   List<Base> _bases = [];
+  Drink? selectedDrink;
+  bool _isFront = true;
 
   void addDrink(Drink d) {
     setState(() {
       _drinks.add(d);
     });
+  }
+
+  Widget _flipAnimation() {
+    onTap() => setState(() {
+          _isFront = !_isFront;
+        });
+
+    return GestureDetector(
+        child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: _isFront
+                ? DrinkListPage(
+                    drinks: _drinks,
+                    onTap: (Drink d) {
+                      selectedDrink = d;
+                      onTap();
+                    },
+                  )
+                : RecipeEditPage(
+                    drink: selectedDrink!,
+                    bases: _bases,
+                    onTap: onTap,
+                  )));
   }
 
   @override
@@ -73,21 +120,25 @@ class DrinkMgrState extends State<DrinkMgr> {
 
   @override
   Widget build(BuildContext context) {
+    return _flipAnimation();
+  }
+}
+
+class DrinkListPage extends StatelessWidget {
+  const DrinkListPage({Key? key, required this.drinks, required this.onTap})
+      : super(key: key);
+  final List<Drink> drinks;
+  final Function onTap;
+  @override
+  Widget build(BuildContext context) {
     List<Widget> widgets = [];
 
-    for (var d in _drinks) {
+    for (var d in drinks) {
       widgets.add(
         Card(
           child: InkWell(
             onTap: () {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return RecipeInput(
-                      drink: d,
-                      bases: _bases,
-                    );
-                  });
+              onTap(d);
             },
             child: ListTile(
               title: Text(d.name),
@@ -161,17 +212,21 @@ class _DrinkInputState extends State<DrinkInput> {
   }
 }
 
-class RecipeInput extends StatefulWidget {
-  const RecipeInput({Key? key, required this.drink, required this.bases})
+class RecipeEditPage extends StatefulWidget {
+  const RecipeEditPage(
+      {Key? key, required this.drink, required this.bases, required this.onTap})
       : super(key: key);
   final Drink drink;
   final List<Base> bases;
+  final Function onTap;
+
   @override
-  _RecipeInputState createState() => _RecipeInputState();
+  _RecipeEditPageState createState() => _RecipeEditPageState();
 }
 
-class _RecipeInputState extends State<RecipeInput> {
+class _RecipeEditPageState extends State<RecipeEditPage> {
   List<int> selected = [];
+  List<RecipeElement> deleted = [];
 
   @override
   void initState() {
@@ -185,51 +240,114 @@ class _RecipeInputState extends State<RecipeInput> {
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
 
-    for (int i = 0; i < widget.drink.recipe.elements.length; ++i) {
-      widgets.add(Card(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        DropdownButton(
-          value: selected[i],
-          items: widget.bases.map((Base e) {
-            return DropdownMenuItem(
-              child: Text(e.name),
-              value: e.idx,
-            );
-          }).toList(),
-          onChanged: (int? v) {
-            setState(() {
-              selected[i] = v!;
-            });
-          },
+    widgets.add(
+      Card(
+        child: Column(
+          children: [
+            TextFormField(
+              initialValue: widget.drink.img,
+              decoration: const InputDecoration(hintText: "img"),
+            ),
+            TextFormField(
+              initialValue: widget.drink.desc,
+              decoration: const InputDecoration(hintText: "desc"),
+            )
+          ],
         ),
-        TextFormField(
-          initialValue: widget.drink.recipe.elements[i].volume,
-        )
-      ])));
+      ),
+    );
+
+    for (int i = 0; i < widget.drink.recipe.elements.length; ++i) {
+      if (!deleted.contains(widget.drink.recipe.elements[i])) {
+        widgets.add(
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(widget.drink.recipe.elements[i].idx.toString()),
+                Row(children: [
+                  DropdownButton(
+                    value: selected[i],
+                    items: widget.bases.map((Base e) {
+                      return DropdownMenuItem(
+                        child: Text(e.name),
+                        value: e.idx,
+                      );
+                    }).toList(),
+                    onChanged: (int? v) {
+                      setState(() {
+                        selected[i] = v!;
+                      });
+                    },
+                  ),
+                  Expanded(child: Container()),
+                  IconButton(
+                      onPressed: () {
+                        setState(() {
+                          deleted.add(widget.drink.recipe.elements[i]);
+                        });
+                      },
+                      icon: const Icon(Icons.remove))
+                ]),
+                TextFormField(
+                  initialValue: widget.drink.recipe.elements[i].volume,
+                )
+              ],
+            ),
+          ),
+        );
+      }
     }
+    void commit() {
+      for (var r in deleted) {
+        deleteRecipe(r.idx);
+        setState(() {
+          widget.drink.recipe.elements.remove(r);
+        });
+      }
+
+      for (var r in widget.drink.recipe.elements) {
+        var res = updateRecipe(r.idx, r.base.idx, "test");
+        res.then((value) {
+          log(value.statusCode.toString());
+          log(value.body);
+        });
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(10),
-      child: ListView(
-        children: widgets +
-            [
-              ElevatedButton(
-                onPressed: () {
-                  var v = addRecipe(widget.drink.idx, 1, "");
-                  v.then((value) {
-                    log(value.body);
-                  });
-                  setState(() {
-                    selected.add(1);
-                  });
-                },
-                child: const Icon(Icons.add),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text("완료"),
-              )
-            ],
+      child: Card(
+        child: ListView(
+          children: widgets +
+              [
+                ElevatedButton(
+                  onPressed: () {
+                    var v =
+                        addRecipe(widget.drink.idx, widget.bases.first.idx, "");
+                    v.then((value) {
+                      var j = json.decode(utf8.decode(value.bodyBytes));
+
+                      setState(() {
+                        widget.drink.recipe.elements.add(RecipeElement(
+                            j["idx"], widget.bases.first, j["volume"]));
+                      });
+                    });
+                    setState(() {
+                      selected.add(1);
+                    });
+                  },
+                  child: const Icon(Icons.add),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    commit();
+                    widget.onTap();
+                  },
+                  child: const Text("완료"),
+                )
+              ],
+        ),
       ),
     );
   }
