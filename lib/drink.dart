@@ -8,13 +8,13 @@ Future<List<Drink>> fetchDrink() async {
     Uri.parse('https://alcohol.bada.works/api/drinks/?format=json'),
   );
 
-  var arr = json.decode(utf8.decode(response.bodyBytes))["results"];
+  var results = json.decode(utf8.decode(response.bodyBytes))["results"];
 
   List<Drink> drinks = <Drink>[];
 
-  for (var v in arr) {
+  for (var result in results) {
     drinks.add(
-      Drink.fromJson(v),
+      Drink.fromJson(result),
     );
   }
   drinks.sort((Drink d1, Drink d2) {

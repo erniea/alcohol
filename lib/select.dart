@@ -29,8 +29,8 @@ class SelectPage extends StatefulWidget {
 }
 
 class _SelectPageState extends State<SelectPage> {
-  List<Base> bases = <Base>[];
-  List<bool> checks = <bool>[];
+  List<Base> _bases = <Base>[];
+  List<bool> _checks = <bool>[];
 
   @override
   void initState() {
@@ -38,8 +38,8 @@ class _SelectPageState extends State<SelectPage> {
     var result = fetchBase();
     result.then((value) {
       setState(() {
-        bases = value;
-        checks = List.filled(bases.length, false);
+        _bases = value;
+        _checks = List.filled(_bases.length, false);
       });
     });
   }
@@ -47,31 +47,23 @@ class _SelectPageState extends State<SelectPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> widgets = <Widget>[];
-    for (int i = 0; i < bases.length; ++i) {
-      checks[i] = widget.baseFilter.contains(bases[i].idx);
+    for (int i = 0; i < _bases.length; ++i) {
+      _checks[i] = widget.baseFilter.contains(_bases[i].idx);
 
-      if (bases[i].inStock) {
+      if (_bases[i].inStock) {
         widgets.add(
           SwitchListTile(
-            title: Text(bases[i].name),
+            title: Text(_bases[i].name),
             onChanged: (bool value) {
-              checks[i] = value;
-              widget.setFilter(value, bases[i].idx);
+              _checks[i] = value;
+              widget.setFilter(value, _bases[i].idx);
             },
-            value: checks[i],
+            value: _checks[i],
           ),
         );
       }
     }
 
-/*
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-          padding: const EdgeInsets.all(10),
-          child: ListView(children: widgets)),
-    );
-    */
     return Container(
       padding: const EdgeInsets.all(10),
       child: ListView(children: widgets),

@@ -36,11 +36,11 @@ class AlcoholDrinks extends StatefulWidget {
 }
 
 class _AlcoholDrinksState extends State<AlcoholDrinks> {
-  int page = 0;
-  int idx = 0;
-  String name = "";
-  List<DrinkCard> drinkCards = <DrinkCard>[];
-  Set<int> baseFilter = {};
+  int _page = 0;
+  int _idx = 0;
+  String _name = "";
+  final List<DrinkCard> _drinkCards = <DrinkCard>[];
+  final Set<int> _baseFilter = {};
   @override
   void initState() {
     super.initState();
@@ -49,10 +49,10 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     result.then((value) {
       setState(() {
         for (var d in value) {
-          drinkCards.add(DrinkCard(drink: d));
+          _drinkCards.add(DrinkCard(drink: d));
         }
-        idx = drinkCards[0].drink.idx;
-        name = drinkCards[0].drink.name;
+        _idx = _drinkCards[0].drink.idx;
+        _name = _drinkCards[0].drink.name;
       });
     });
   }
@@ -60,9 +60,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   void setFilter(bool isOn, int baseIdx) {
     setState(() {
       if (isOn) {
-        baseFilter.add(baseIdx);
+        _baseFilter.add(baseIdx);
       } else {
-        baseFilter.remove(baseIdx);
+        _baseFilter.remove(baseIdx);
       }
     });
   }
@@ -70,10 +70,10 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   @override
   Widget build(BuildContext context) {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
-    for (var drink in drinkCards) {
+    for (var drink in _drinkCards) {
       bool baseContained = false;
-      if (baseFilter.isNotEmpty) {
-        for (int idx in baseFilter) {
+      if (_baseFilter.isNotEmpty) {
+        for (int idx in _baseFilter) {
           baseContained |= drink.drink.baseContains(idx);
         }
         if (baseContained && drink.drink.recipe.available) {
@@ -86,7 +86,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     return Scaffold(
       drawer: Drawer(
         child: SelectPage(
-          baseFilter: baseFilter,
+          baseFilter: _baseFilter,
           setFilter: setFilter,
         ),
       ),
@@ -101,18 +101,18 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
               PageView(
                 onPageChanged: (int inPage) {
                   setState(() {
-                    page = inPage;
-                    idx = drinksToShow[inPage].drink.idx;
-                    name = drinksToShow[inPage].drink.name;
+                    _page = inPage;
+                    _idx = drinksToShow[inPage].drink.idx;
+                    _name = drinksToShow[inPage].drink.name;
                   });
                 },
-                controller: PageController(initialPage: page),
+                controller: PageController(initialPage: _page),
                 scrollDirection: Axis.vertical,
                 children: drinksToShow,
               ),
               SocialPage(
-                idx: idx,
-                name: name,
+                idx: _idx,
+                name: _name,
               )
             ],
           ),
@@ -130,23 +130,23 @@ class AlcoholAdmin extends StatefulWidget {
 }
 
 class _AlcoholAdminState extends State<AlcoholAdmin> {
-  int page = 0;
-  GlobalKey<BaseMgrState> baseMgrState = GlobalKey();
-  GlobalKey<DrinkMgrState> drinkMgrState = GlobalKey();
+  int _page = 0;
+  final GlobalKey<BaseMgrState> _baseMgrState = GlobalKey();
+  final GlobalKey<DrinkMgrState> _drinkMgrState = GlobalKey();
 
   Widget buildBottomSheet(BuildContext context) {
-    switch (page) {
+    switch (_page) {
       case 0:
-        return BaseInput(baseMgrState: baseMgrState);
+        return BaseInput(baseMgrState: _baseMgrState);
 
       case 1:
-        return DrinkInput(drinkMgrState: drinkMgrState);
+        return DrinkInput(drinkMgrState: _drinkMgrState);
       default:
     }
 
     return Column(
       children: [
-        ElevatedButton(onPressed: () {}, child: Text(page.toString())),
+        ElevatedButton(onPressed: () {}, child: Text(_page.toString())),
         ElevatedButton(onPressed: () {}, child: const Text("레시피")),
       ],
     );
@@ -163,15 +163,15 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
             controller: PageController(initialPage: 0),
             children: [
               BaseMgr(
-                key: baseMgrState,
+                key: _baseMgrState,
               ),
               DrinkMgr(
-                key: drinkMgrState,
+                key: _drinkMgrState,
               )
             ],
             onPageChanged: (inPage) {
               setState(() {
-                page = inPage;
+                _page = inPage;
               });
             },
           ),

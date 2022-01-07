@@ -50,13 +50,13 @@ class BaseMgr extends StatefulWidget {
 }
 
 class BaseMgrState extends State<BaseMgr> {
-  List<Base> bases = <Base>[];
-  List<bool> checks = <bool>[];
+  List<Base> _bases = <Base>[];
+  final List<bool> _checks = <bool>[];
 
-  void addBase(Base b) {
+  void addBase(Base base) {
     setState(() {
-      bases.add(b);
-      checks.add(b.inStock);
+      _bases.add(base);
+      _checks.add(base.inStock);
     });
   }
 
@@ -66,10 +66,10 @@ class BaseMgrState extends State<BaseMgr> {
     var result = fetchBase();
     result.then((value) {
       for (var base in value) {
-        checks.add(base.inStock);
+        _checks.add(base.inStock);
       }
       setState(() {
-        bases = value;
+        _bases = value;
       });
     });
   }
@@ -78,21 +78,21 @@ class BaseMgrState extends State<BaseMgr> {
   Widget build(BuildContext context) {
     var widgets = <Widget>[];
 
-    for (int i = 0; i < bases.length; ++i) {
+    for (int i = 0; i < _bases.length; ++i) {
       widgets.add(
         SwitchListTile(
           title: TextFormField(
-            initialValue: bases[i].name,
+            initialValue: _bases[i].name,
             onChanged: (value) {
-              updateBaseName(bases[i].idx, value);
+              updateBaseName(_bases[i].idx, value);
             },
           ),
-          value: checks[i],
+          value: _checks[i],
           onChanged: (value) {
             setState(() {
-              checks[i] = value;
+              _checks[i] = value;
             });
-            updateBaseInStock(bases[i].idx, value);
+            updateBaseInStock(_bases[i].idx, value);
           },
         ),
       );
@@ -122,9 +122,9 @@ class _BaseInputState extends State<BaseInput> {
 
   void onSubmit(BuildContext context) {
     if (controller.text.isNotEmpty) {
-      var response = addBase(controller.text, inStock);
+      var result = addBase(controller.text, inStock);
 
-      response.then((value) {
+      result.then((value) {
         var j = json.decode(utf8.decode(value.bodyBytes));
         widget.baseMgrState.currentState
             ?.addBase(Base(j["idx"], j["name"], j["instock"]));

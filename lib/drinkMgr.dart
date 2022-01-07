@@ -68,7 +68,7 @@ class DrinkMgr extends StatefulWidget {
 class DrinkMgrState extends State<DrinkMgr> {
   List<Drink> _drinks = [];
   List<Base> _bases = [];
-  Drink? selectedDrink;
+  Drink? _selectedDrink;
   bool _isFront = true;
 
   void addDrink(Drink d) {
@@ -88,13 +88,13 @@ class DrinkMgrState extends State<DrinkMgr> {
             child: _isFront
                 ? DrinkListPage(
                     drinks: _drinks,
-                    onTap: (Drink d) {
-                      selectedDrink = d;
+                    onTap: (Drink drink) {
+                      _selectedDrink = drink;
                       onTap();
                     },
                   )
                 : RecipeEditPage(
-                    drink: selectedDrink!,
+                    drink: _selectedDrink!,
                     bases: _bases,
                     onTap: onTap,
                   )));
@@ -104,14 +104,14 @@ class DrinkMgrState extends State<DrinkMgr> {
   void initState() {
     super.initState();
 
-    var drinkResponse = fetchDrink();
-    drinkResponse.then((value) {
+    var drinkResult = fetchDrink();
+    drinkResult.then((value) {
       setState(() {
         _drinks = value;
       });
     });
-    var baseResponse = fetchBase();
-    baseResponse.then((value) {
+    var baseResult = fetchBase();
+    baseResult.then((value) {
       setState(() {
         _bases = value;
       });
@@ -133,15 +133,15 @@ class DrinkListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
 
-    for (var d in drinks) {
+    for (var drink in drinks) {
       widgets.add(
         Card(
           child: InkWell(
             onTap: () {
-              onTap(d);
+              onTap(drink);
             },
             child: ListTile(
-              title: Text(d.name),
+              title: Text(drink.name),
             ),
           ),
         ),
