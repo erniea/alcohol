@@ -233,9 +233,9 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
   @override
   void initState() {
     super.initState();
-    for (var r in widget.drink.recipe.elements) {
-      selected[r.idx] = r.base.idx;
-      textControllers[r.idx] = TextEditingController(text: r.volume);
+    for (var recipe in widget.drink.recipe.elements) {
+      selected[recipe.idx] = recipe.base.idx;
+      textControllers[recipe.idx] = TextEditingController(text: recipe.volume);
     }
   }
 
@@ -271,15 +271,15 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
                 Row(children: [
                   DropdownButton(
                     value: selected[widget.drink.recipe.elements[i].idx],
-                    items: widget.bases.map((Base e) {
+                    items: widget.bases.map((Base base) {
                       return DropdownMenuItem(
-                        child: Text(e.name),
-                        value: e.idx,
+                        child: Text(base.name),
+                        value: base.idx,
                       );
                     }).toList(),
-                    onChanged: (int? v) {
+                    onChanged: (int? value) {
                       setState(() {
-                        selected[widget.drink.recipe.elements[i].idx] = v!;
+                        selected[widget.drink.recipe.elements[i].idx] = value!;
                       });
                     },
                   ),
@@ -303,18 +303,19 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
       }
     }
     void commit() {
-      for (var r in deleted) {
-        deleteRecipe(r.idx);
+      for (var recipe in deleted) {
+        deleteRecipe(recipe.idx);
         setState(() {
-          widget.drink.recipe.elements.remove(r);
+          widget.drink.recipe.elements.remove(recipe);
         });
       }
 
-      for (var r in widget.drink.recipe.elements) {
-        updateRecipe(r.idx, selected[r.idx]!, (textControllers[r.idx]?.text)!);
+      for (var recipe in widget.drink.recipe.elements) {
+        updateRecipe(recipe.idx, selected[recipe.idx]!,
+            (textControllers[recipe.idx]?.text)!);
         setState(() {
-          r.base = Base(selected[r.idx]!, "", true);
-          r.volume = (textControllers[r.idx]?.text)!;
+          recipe.base = Base(selected[recipe.idx]!, "", true);
+          recipe.volume = (textControllers[recipe.idx]?.text)!;
         });
       }
     }
@@ -327,9 +328,9 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
               [
                 ElevatedButton(
                   onPressed: () {
-                    var r =
+                    var result =
                         addRecipe(widget.drink.idx, widget.bases.first.idx, "");
-                    r.then((value) {
+                    result.then((value) {
                       var j = json.decode(utf8.decode(value.bodyBytes));
 
                       setState(() {
