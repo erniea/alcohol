@@ -143,7 +143,7 @@ class RecipePage extends StatelessWidget {
           child: Row(
             children: [
               Text(r.base.name, style: style),
-              const Expanded(child: Text("")),
+              Expanded(child: Container()),
               Text(r.volume, style: style)
             ],
           ),
