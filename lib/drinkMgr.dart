@@ -337,6 +337,7 @@ class _RecipeEditPageState extends State<RecipeEditPage> {
                             j["idx"], widget.bases.first, j["volume"]));
 
                         selected[j["idx"]] = widget.bases.first.idx;
+                        textControllers[j["idx"]] = TextEditingController();
                       });
                     });
                   },
