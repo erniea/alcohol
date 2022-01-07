@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+
 class Base {
   final int idx;
   final String name;
@@ -11,17 +13,13 @@ class Base {
 
 class RecipeElement {
   final int idx;
-  final Base base;
-  final String volume;
+  Base base;
+  String volume;
 
   RecipeElement(this.idx, this.base, this.volume);
 
   factory RecipeElement.fromJson(Map<String, dynamic> j) {
     return RecipeElement(j["idx"], Base.fromJson(j["base"]), j["volume"]);
-  }
-  @override
-  String toString() {
-    return base.name + "\t" + volume;
   }
 }
 

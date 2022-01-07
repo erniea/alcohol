@@ -160,7 +160,7 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
           child: PageView(
-            controller: PageController(initialPage: 1),
+            controller: PageController(initialPage: 0),
             children: [
               BaseMgr(
                 key: baseMgrState,
