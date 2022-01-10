@@ -3,10 +3,24 @@ import 'package:alcohol/drink.dart';
 import 'package:alcohol/drinkMgr.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutterfire_ui/auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+        apiKey: "AIzaSyBjW3tGd88Z3VL5rJSuPfwPUsT5lzWrBzs",
+        authDomain: "alcohol-bada.firebaseapp.com",
+        projectId: "alcohol-bada",
+        storageBucket: "alcohol-bada.appspot.com",
+        messagingSenderId: "920011687590",
+        appId: "1:920011687590:web:818405bc02ec38a5111667",
+        measurementId: "G-40GSPC0MRH"),
+  );
   runApp(const Alcohol());
 }
 
@@ -20,10 +34,23 @@ class Alcohol extends StatelessWidget {
       title: 'alcohol',
       initialRoute: "/",
       routes: {
-        "/": (context) => const AlcoholDrinks(),
+        "/": (context) => StreamBuilder(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                return snapshot.hasData
+                    ? const AlcoholDrinks()
+                    : const SignInScreen(
+                        providerConfigs: [
+                          GoogleProviderConfiguration(
+                            clientId:
+                                "920011687590-8t57g716g57grn0m1p2bsf4i48uleppd.apps.googleusercontent.com",
+                          ),
+                        ],
+                      );
+              },
+            ),
         "/admin": (context) => const AlcoholAdmin(),
       },
-      //home: AlcoholDrinks(),
     );
   }
 }
@@ -90,6 +117,12 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
           setFilter: setFilter,
         ),
       ),
+/*     
+ appBar: AppBar(
+        title: const Text("alcohol.bada"),
+        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.login))],
+      ),
+      */
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
