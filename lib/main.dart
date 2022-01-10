@@ -102,6 +102,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
           setFilter: setFilter,
         ),
       ),
+      /*
       appBar: AppBar(
         title: const Text("alcohol.bada"),
         actions: [
@@ -112,6 +113,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
               icon: const Icon(Icons.logout))
         ],
       ),
+      */
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),

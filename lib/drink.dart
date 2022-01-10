@@ -98,20 +98,6 @@ class DetailPage extends StatelessWidget {
               ),
               subtitle: Text(drink.desc),
             ),
-            Row(
-              children: <Widget>[
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.favorite),
-                  splashRadius: 20,
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.share),
-                  splashRadius: 20,
-                ),
-              ],
-            )
           ],
         ),
       ),

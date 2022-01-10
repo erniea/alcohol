@@ -75,4 +75,8 @@ class Comment {
     this.star,
     this.comment,
   );
+
+  factory Comment.fromJson(Map<String, dynamic> j) {
+    return Comment(j["idx"], j["uid"], j["star"], j["comment"]);
+  }
 }

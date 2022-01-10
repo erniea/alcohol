@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:alcohol/ds.dart';
@@ -5,15 +6,45 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:http/http.dart' as http;
-/*
-Future<List<Comment>> fetchComment() async {
+
+Future<List<Comment>> fetchComment(int idx) async {
   final result = await http.get(
-    Uri.parse('https://alcohol.bada.works/api/comments/?format=json'),
+    Uri.parse('https://alcohol.bada.works/api/comments/?search=$idx'),
   );
 
-  return [];
+  var results = json.decode(utf8.decode(result.bodyBytes))["results"];
+
+  List<Comment> list = [];
+  for (var r in results) {
+    list.add(Comment.fromJson(r));
+  }
+  return list;
 }
-*/
+
+Future<http.Response> addComment(
+    int drinkIdx, String uid, int star, String comment) {
+  return http.post(
+    Uri.parse('https://alcohol.bada.works/api/comments/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'drink': drinkIdx,
+      'uid': uid,
+      'star': star,
+      'comment': comment
+    }),
+  );
+}
+
+Future<http.Response> deleteComment(int idx) {
+  return http.delete(
+    Uri.parse('https://alcohol.bada.works/api/comments/$idx/'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+  );
+}
 
 class SocialPage extends StatefulWidget {
   const SocialPage({
@@ -28,23 +59,31 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage> {
-  List<bool> _stars = [];
+  List<Comment> _comments = [];
+
+  TextEditingController textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _stars = List.filled(5, true);
+    var comments = fetchComment(widget.drink.idx);
+
+    comments.then((value) {
+      setState(() {
+        _comments = value;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
-    widgets.add(CommentCard(comment: Comment(1, "123", 5, "괜찮다")));
-    widgets.add(CommentCard(comment: Comment(1, "456", 4, "괜찮다")));
-    widgets.add(CommentCard(
-        comment: Comment(1, "789", 2, "괜찮다 아주 길다란 코멘트와 함께 괜찮다는 별점을 남겨본다")));
-    widgets.add(CommentCard(
-        comment: Comment(2, "RZXV8gOEaTY0TaethFRm7DGZuTa2", 1, "별루다")));
+
+    widgets.add(Text(widget.drink.name));
+
+    for (var c in _comments) {
+      widgets.add(CommentCard(comment: c, onDelete: _onDelete));
+    }
 
     widgets.add(Expanded(child: Container()));
     widgets.add(_getWriteForm());
@@ -68,10 +107,30 @@ class _SocialPageState extends State<SocialPage> {
     );
   }
 
+  int _star = 5;
   void _setStar(int i) {
-    log(i.toString());
     setState(() {
-      _stars[i] = !_stars[i];
+      _star = i + 1;
+    });
+  }
+
+  void _onSubmit() {
+    var result = addComment(widget.drink.idx,
+        (FirebaseAuth.instance.currentUser?.uid)!, _star, textController.text);
+
+    result.then((value) {
+      var idx = json.decode(utf8.decode(value.bodyBytes))["idx"];
+      setState(() {
+        _comments.add(Comment(idx, (FirebaseAuth.instance.currentUser?.uid)!,
+            _star, textController.text));
+        textController.text = "";
+      });
+    });
+  }
+
+  void _onDelete(Comment commentToDelete) {
+    setState(() {
+      _comments.removeAt(_comments.indexOf(commentToDelete));
     });
   }
 
@@ -82,24 +141,37 @@ class _SocialPageState extends State<SocialPage> {
           onPressed: () {
             _setStar(i);
           },
-          icon: _stars[i]
+          icon: _star > i
               ? const Icon(Icons.star)
               : const Icon(Icons.star_border)));
     }
     return Card(
-      child: Row(
-        children: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.star_border))
-        ],
-      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: starForm,
+        ),
+        TextField(
+          controller: textController,
+          onSubmitted: (value) {
+            _onSubmit();
+          },
+        ),
+        ElevatedButton(
+            onPressed: () {
+              _onSubmit();
+            },
+            child: const Text("Comment"))
+      ]),
     );
   }
 }
 
 class CommentCard extends StatelessWidget {
-  const CommentCard({Key? key, required this.comment}) : super(key: key);
+  const CommentCard({Key? key, required this.comment, required this.onDelete})
+      : super(key: key);
   final Comment comment;
-
+  final Function onDelete;
   Widget _starToWidget() {
     List<Widget> result = [];
 
@@ -110,7 +182,12 @@ class CommentCard extends StatelessWidget {
     result.add(Expanded(child: Container()));
 
     if (FirebaseAuth.instance.currentUser?.uid == comment.uid) {
-      result.add(IconButton(onPressed: () {}, icon: const Icon(Icons.delete)));
+      result.add(IconButton(
+          onPressed: () {
+            deleteComment(comment.idx);
+            onDelete(comment);
+          },
+          icon: const Icon(Icons.delete)));
     }
     return Row(
       children: result,
