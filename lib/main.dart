@@ -34,21 +34,7 @@ class Alcohol extends StatelessWidget {
       title: 'alcohol',
       initialRoute: "/",
       routes: {
-        "/": (context) => StreamBuilder(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                return snapshot.hasData
-                    ? const AlcoholDrinks()
-                    : const SignInScreen(
-                        providerConfigs: [
-                          GoogleProviderConfiguration(
-                            clientId:
-                                "920011687590-8t57g716g57grn0m1p2bsf4i48uleppd.apps.googleusercontent.com",
-                          ),
-                        ],
-                      );
-              },
-            ),
+        "/": (context) => const AlcoholDrinks(),
         "/admin": (context) => const AlcoholAdmin(),
       },
     );
@@ -117,12 +103,16 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
           setFilter: setFilter,
         ),
       ),
-/*     
- appBar: AppBar(
+      appBar: AppBar(
         title: const Text("alcohol.bada"),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.login))],
+        actions: [
+          IconButton(
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
+              icon: const Icon(Icons.logout))
+        ],
       ),
-      */
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
@@ -143,9 +133,23 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 scrollDirection: Axis.vertical,
                 children: drinksToShow,
               ),
-              SocialPage(
-                idx: _idx,
-                name: _name,
+              StreamBuilder(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, snapshot) {
+                  return snapshot.hasData
+                      ? SocialPage(
+                          idx: _idx,
+                          name: _name,
+                        )
+                      : const SignInScreen(
+                          providerConfigs: [
+                            GoogleProviderConfiguration(
+                              clientId:
+                                  "920011687590-8t57g716g57grn0m1p2bsf4i48uleppd.apps.googleusercontent.com",
+                            ),
+                          ],
+                        );
+                },
               )
             ],
           ),
