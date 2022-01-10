@@ -62,3 +62,17 @@ class Drink {
     return false;
   }
 }
+
+class Comment {
+  final int idx;
+  final String uid;
+  final int star;
+  final String comment;
+
+  Comment(
+    this.idx,
+    this.uid,
+    this.star,
+    this.comment,
+  );
+}

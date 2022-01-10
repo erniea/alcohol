@@ -1,6 +1,7 @@
 import 'package:alcohol/baseMgr.dart';
 import 'package:alcohol/drink.dart';
 import 'package:alcohol/drinkMgr.dart';
+import 'package:alcohol/ds.dart';
 import 'package:alcohol/select.dart';
 import 'package:alcohol/social.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -50,10 +51,9 @@ class AlcoholDrinks extends StatefulWidget {
 
 class _AlcoholDrinksState extends State<AlcoholDrinks> {
   int _page = 0;
-  int _idx = 0;
-  String _name = "";
-  final List<DrinkCard> _drinkCards = <DrinkCard>[];
-  final Set<int> _baseFilter = {};
+  Drink _currentDrink = Drink(0, "", "", "", Recipe([], true));
+  List<DrinkCard> drinkCards = <DrinkCard>[];
+  Set<int> baseFilter = {};
   @override
   void initState() {
     super.initState();
@@ -62,10 +62,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     result.then((value) {
       setState(() {
         for (var d in value) {
-          _drinkCards.add(DrinkCard(drink: d));
+          drinkCards.add(DrinkCard(drink: d));
         }
-        _idx = _drinkCards[0].drink.idx;
-        _name = _drinkCards[0].drink.name;
+        _currentDrink = drinkCards.first.drink;
       });
     });
   }
@@ -73,9 +72,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   void setFilter(bool isOn, int baseIdx) {
     setState(() {
       if (isOn) {
-        _baseFilter.add(baseIdx);
+        baseFilter.add(baseIdx);
       } else {
-        _baseFilter.remove(baseIdx);
+        baseFilter.remove(baseIdx);
       }
     });
   }
@@ -83,10 +82,10 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   @override
   Widget build(BuildContext context) {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
-    for (var drink in _drinkCards) {
+    for (var drink in drinkCards) {
       bool baseContained = false;
-      if (_baseFilter.isNotEmpty) {
-        for (int idx in _baseFilter) {
+      if (baseFilter.isNotEmpty) {
+        for (int idx in baseFilter) {
           baseContained |= drink.drink.baseContains(idx);
         }
         if (baseContained && drink.drink.recipe.available) {
@@ -99,7 +98,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     return Scaffold(
       drawer: Drawer(
         child: SelectPage(
-          baseFilter: _baseFilter,
+          baseFilter: baseFilter,
           setFilter: setFilter,
         ),
       ),
@@ -125,31 +124,15 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                 onPageChanged: (int inPage) {
                   setState(() {
                     _page = inPage;
-                    _idx = drinksToShow[inPage].drink.idx;
-                    _name = drinksToShow[inPage].drink.name;
+                    _currentDrink = drinksToShow[inPage].drink;
                   });
                 },
                 controller: PageController(initialPage: _page),
                 scrollDirection: Axis.vertical,
                 children: drinksToShow,
               ),
-              StreamBuilder(
-                stream: FirebaseAuth.instance.authStateChanges(),
-                builder: (context, snapshot) {
-                  return snapshot.hasData
-                      ? SocialPage(
-                          idx: _idx,
-                          name: _name,
-                        )
-                      : const SignInScreen(
-                          providerConfigs: [
-                            GoogleProviderConfiguration(
-                              clientId:
-                                  "920011687590-8t57g716g57grn0m1p2bsf4i48uleppd.apps.googleusercontent.com",
-                            ),
-                          ],
-                        );
-                },
+              SocialPage(
+                drink: _currentDrink,
               )
             ],
           ),
@@ -167,23 +150,23 @@ class AlcoholAdmin extends StatefulWidget {
 }
 
 class _AlcoholAdminState extends State<AlcoholAdmin> {
-  int _page = 0;
-  final GlobalKey<BaseMgrState> _baseMgrState = GlobalKey();
-  final GlobalKey<DrinkMgrState> _drinkMgrState = GlobalKey();
+  int page = 0;
+  GlobalKey<BaseMgrState> baseMgrState = GlobalKey();
+  GlobalKey<DrinkMgrState> drinkMgrState = GlobalKey();
 
   Widget buildBottomSheet(BuildContext context) {
-    switch (_page) {
+    switch (page) {
       case 0:
-        return BaseInput(baseMgrState: _baseMgrState);
+        return BaseInput(baseMgrState: baseMgrState);
 
       case 1:
-        return DrinkInput(drinkMgrState: _drinkMgrState);
+        return DrinkInput(drinkMgrState: drinkMgrState);
       default:
     }
 
     return Column(
       children: [
-        ElevatedButton(onPressed: () {}, child: Text(_page.toString())),
+        ElevatedButton(onPressed: () {}, child: Text(page.toString())),
         ElevatedButton(onPressed: () {}, child: const Text("레시피")),
       ],
     );
@@ -197,18 +180,18 @@ class _AlcoholAdminState extends State<AlcoholAdmin> {
           constraints: const BoxConstraints.expand(),
           margin: const EdgeInsets.all(30),
           child: PageView(
-            controller: PageController(initialPage: 0),
+            controller: PageController(initialPage: 1),
             children: [
               BaseMgr(
-                key: _baseMgrState,
+                key: baseMgrState,
               ),
               DrinkMgr(
-                key: _drinkMgrState,
+                key: drinkMgrState,
               )
             ],
             onPageChanged: (inPage) {
               setState(() {
-                _page = inPage;
+                page = inPage;
               });
             },
           ),
