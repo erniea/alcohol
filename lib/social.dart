@@ -79,21 +79,39 @@ class _SocialPageState extends State<SocialPage> {
   Widget build(BuildContext context) {
     List<Widget> widgets = [];
 
-    widgets.add(Text(widget.drink.name));
-
+    int stars = 0;
     for (var c in _comments) {
       widgets.add(CommentCard(comment: c, onDelete: _onDelete));
+      stars += c.star;
     }
 
-    widgets.add(Expanded(child: Container()));
-    widgets.add(_getWriteForm());
+    if (_comments.isNotEmpty) {
+      widgets.insert(
+          0,
+          CommentCard(
+            comment:
+                Comment(0, "", (stars / _comments.length).round(), "평균 평점"),
+            onDelete: () {},
+          ));
+    }
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           return snapshot.hasData
-              ? Column(children: widgets)
+              ? Column(children: [
+                  Text(widget.drink.name),
+                  Expanded(
+                    child: ListView(
+                      children: widgets,
+                      shrinkWrap: true,
+                      //physics: ClampingScrollPhysics(),
+                    ),
+                  ),
+                  _getWriteForm()
+                ])
               : const SignInScreen(
                   providerConfigs: [
                     GoogleProviderConfiguration(
@@ -145,6 +163,7 @@ class _SocialPageState extends State<SocialPage> {
               ? const Icon(Icons.star)
               : const Icon(Icons.star_border)));
     }
+
     return Card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(
