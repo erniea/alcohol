@@ -121,6 +121,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
           child: PageView(
             controller: PageController(initialPage: 0),
             scrollDirection: Axis.horizontal,
+            onPageChanged: (int inPage) {
+              WidgetsBinding.instance?.focusManager.primaryFocus?.unfocus();
+            },
             children: <Widget>[
               PageView(
                 onPageChanged: (int inPage) {
