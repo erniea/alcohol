@@ -54,6 +54,7 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   Drink _currentDrink = Drink(0, "", "", "", Recipe([], true));
   List<DrinkCard> drinkCards = <DrinkCard>[];
   Set<int> baseFilter = {};
+  String textFilter = "";
   @override
   void initState() {
     super.initState();
@@ -62,14 +63,16 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     result.then((value) {
       setState(() {
         for (var d in value) {
-          drinkCards.add(DrinkCard(drink: d));
+          if (d.recipe.available) {
+            drinkCards.add(DrinkCard(drink: d));
+          }
         }
         _currentDrink = drinkCards.first.drink;
       });
     });
   }
 
-  void setFilter(bool isOn, int baseIdx) {
+  void setBaseFilter(bool isOn, int baseIdx) {
     setState(() {
       if (isOn) {
         baseFilter.add(baseIdx);
@@ -79,11 +82,22 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
     });
   }
 
+  void setTextFilter(String inFilter) {
+    setState(() {
+      textFilter = inFilter;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
     for (var drink in drinkCards) {
       bool baseContained = false;
+      if (textFilter.isNotEmpty) {
+        if (!drink.drink.name.contains(textFilter)) {
+          continue;
+        }
+      }
       if (baseFilter.isNotEmpty) {
         for (int idx in baseFilter) {
           baseContained |= drink.drink.baseContains(idx);
@@ -95,25 +109,25 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         drinksToShow.add(drink);
       }
     }
+
+    if (drinksToShow.isNotEmpty) {
+      if (drinksToShow.length > _page) {
+        _currentDrink = drinksToShow[_page].drink;
+      } else {
+        _currentDrink = drinksToShow[drinksToShow.length - 1].drink;
+      }
+    }
+
+    TextEditingController textController =
+        TextEditingController(text: textFilter);
+
     return Scaffold(
       drawer: Drawer(
         child: SelectPage(
           baseFilter: baseFilter,
-          setFilter: setFilter,
+          setFilter: setBaseFilter,
         ),
       ),
-      /*
-      appBar: AppBar(
-        title: const Text("alcohol.bada"),
-        actions: [
-          IconButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-              },
-              icon: const Icon(Icons.logout))
-        ],
-      ),
-      */
       body: Center(
         child: Container(
           constraints: const BoxConstraints.expand(),
@@ -125,16 +139,36 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
               WidgetsBinding.instance?.focusManager.primaryFocus?.unfocus();
             },
             children: <Widget>[
-              PageView(
-                onPageChanged: (int inPage) {
-                  setState(() {
-                    _page = inPage;
-                    _currentDrink = drinksToShow[inPage].drink;
-                  });
-                },
-                controller: PageController(initialPage: _page),
-                scrollDirection: Axis.vertical,
-                children: drinksToShow,
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: textController,
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            setTextFilter(textController.text);
+                          },
+                          icon: const Icon(Icons.search))
+                    ],
+                  ),
+                  Expanded(
+                    child: PageView(
+                      onPageChanged: (int inPage) {
+                        setState(() {
+                          _page = inPage;
+                          _currentDrink = drinksToShow[inPage].drink;
+                        });
+                      },
+                      controller: PageController(initialPage: _page),
+                      scrollDirection: Axis.vertical,
+                      children: drinksToShow,
+                    ),
+                  ),
+                ],
               ),
               SocialPage(
                 drink: _currentDrink,

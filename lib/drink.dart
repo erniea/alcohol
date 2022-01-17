@@ -17,9 +17,11 @@ Future<List<Drink>> fetchDrink() async {
       Drink.fromJson(result),
     );
   }
+  /*
   drinks.sort((Drink d1, Drink d2) {
-    return d1.recipe.available == d2.recipe.available ? 1 : -1;
+    return d1.recipe.available ? -1 : 1;
   });
+  */
 
   return drinks;
 }
