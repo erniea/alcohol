@@ -146,6 +146,9 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
                       Expanded(
                         child: TextField(
                           controller: textController,
+                          onSubmitted: (value) {
+                            setTextFilter(value);
+                          },
                         ),
                       ),
                       IconButton(
