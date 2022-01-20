@@ -92,22 +92,28 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
   Widget build(BuildContext context) {
     List<DrinkCard> drinksToShow = <DrinkCard>[];
     for (var drink in drinkCards) {
-      bool baseContained = false;
+      if (!drink.drink.recipe.available) {
+        continue;
+      }
+
       if (textFilter.isNotEmpty) {
         if (!drink.drink.name.contains(textFilter)) {
           continue;
         }
       }
+
       if (baseFilter.isNotEmpty) {
+        bool baseContained = false;
+
         for (int idx in baseFilter) {
           baseContained |= drink.drink.baseContains(idx);
         }
-        if (baseContained && drink.drink.recipe.available) {
-          drinksToShow.add(drink);
+        if (!baseContained) {
+          continue;
         }
-      } else {
-        drinksToShow.add(drink);
       }
+
+      drinksToShow.add(drink);
     }
 
     if (drinksToShow.isNotEmpty) {
@@ -117,9 +123,6 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
         _currentDrink = drinksToShow[drinksToShow.length - 1].drink;
       }
     }
-
-    TextEditingController textController =
-        TextEditingController(text: textFilter);
 
     return Scaffold(
       drawer: Drawer(
@@ -141,22 +144,11 @@ class _AlcoholDrinksState extends State<AlcoholDrinks> {
             children: <Widget>[
               Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: textController,
-                          onSubmitted: (value) {
-                            setTextFilter(value);
-                          },
-                        ),
-                      ),
-                      IconButton(
-                          onPressed: () {
-                            setTextFilter(textController.text);
-                          },
-                          icon: const Icon(Icons.search))
-                    ],
+                  TextField(
+                    onChanged: (value) {
+                      setTextFilter(value);
+                    },
+                    decoration: const InputDecoration(icon: Icon(Icons.search)),
                   ),
                   Expanded(
                     child: PageView(
