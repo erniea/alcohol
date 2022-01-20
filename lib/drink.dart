@@ -76,6 +76,15 @@ class DetailPage extends StatelessWidget {
   final Function onTap;
   @override
   Widget build(BuildContext context) {
+    Image img;
+    if (drink.img.isNotEmpty) {
+      img = Image(image: NetworkImage(drink.img), fit: BoxFit.cover);
+    } else {
+      img = const Image(
+          image: NetworkImage("https://cdn.erniea.net/ethanol.png"),
+          fit: BoxFit.cover);
+    }
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
@@ -87,10 +96,7 @@ class DetailPage extends StatelessWidget {
             Expanded(
               child: Container(
                 padding: const EdgeInsets.only(top: 16),
-                child: Image(
-                  image: NetworkImage(drink.img),
-                  fit: BoxFit.cover,
-                ),
+                child: img,
               ),
             ),
             ListTile(
