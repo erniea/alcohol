@@ -38,8 +38,10 @@ class _SelectPageState extends State<SelectPage> {
     var result = fetchBase();
     result.then((value) {
       setState(() {
-        _bases = value;
-        _checks = List.filled(_bases.length, false);
+        if (mounted) {
+          _bases = value;
+          _checks = List.filled(_bases.length, false);
+        }
       });
     });
   }
