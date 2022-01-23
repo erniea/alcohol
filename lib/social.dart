@@ -8,8 +8,11 @@ import 'package:flutterfire_ui/auth.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<Comment>> fetchComment(int idx) async {
+  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+
   final result = await http.get(
     Uri.parse('https://alcohol.bada.works/api/comments/?search=$idx'),
+    headers: {"authorization": idToken!},
   );
 
   var results = json.decode(utf8.decode(result.bodyBytes))["results"];
@@ -66,11 +69,13 @@ class _SocialPageState extends State<SocialPage> {
   @override
   void initState() {
     super.initState();
-    var comments = fetchComment(widget.drink.idx);
 
-    comments.then((value) {
-      setState(() {
-        _comments = value;
+    FirebaseAuth.instance.authStateChanges().listen((event) {
+      final comments = fetchComment(widget.drink.idx);
+      comments.then((value) {
+        setState(() {
+          _comments = value;
+        });
       });
     });
   }
