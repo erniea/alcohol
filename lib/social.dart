@@ -12,7 +12,7 @@ Future<List<Comment>> fetchComment(int idx) async {
 
   final result = await http.get(
     Uri.parse('https://alcohol.bada.works/api/comments/?search=$idx'),
-    headers: {"authorization": idToken!},
+    headers: {"Authorization": idToken!},
   );
 
   var results = json.decode(utf8.decode(result.bodyBytes))["results"];
@@ -25,11 +25,14 @@ Future<List<Comment>> fetchComment(int idx) async {
 }
 
 Future<http.Response> addComment(
-    int drinkIdx, String uid, int star, String comment) {
+    int drinkIdx, String uid, int star, String comment) async {
+  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+
   return http.post(
     Uri.parse('https://alcohol.bada.works/api/comments/'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
+      "Authorization": idToken!,
     },
     body: jsonEncode(<String, dynamic>{
       'drink': drinkIdx,
@@ -40,11 +43,14 @@ Future<http.Response> addComment(
   );
 }
 
-Future<http.Response> deleteComment(int idx) {
+Future<http.Response> deleteComment(int idx) async {
+  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+
   return http.delete(
     Uri.parse('https://alcohol.bada.works/api/comments/$idx/'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
+      "Authorization": idToken!,
     },
   );
 }
