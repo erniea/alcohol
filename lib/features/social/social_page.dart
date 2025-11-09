@@ -1,59 +1,10 @@
 import 'dart:convert';
-import 'dart:developer';
-
-import 'package:alcohol/ds.dart';
+import 'package:alcohol/models/comment.dart';
+import 'package:alcohol/models/drink.dart';
+import 'package:alcohol/services/comment_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfire_ui/auth.dart';
-import 'package:http/http.dart' as http;
-
-Future<List<Comment>> fetchComment(int idx) async {
-  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
-
-  final result = await http.get(
-    Uri.parse('https://alcohol.bada.works/api/comments/?search=$idx'),
-    headers: {"Authorization": idToken!},
-  );
-
-  var results = json.decode(utf8.decode(result.bodyBytes))["results"];
-
-  List<Comment> list = [];
-  for (var r in results) {
-    list.add(Comment.fromJson(r));
-  }
-  return list;
-}
-
-Future<http.Response> addComment(
-    int drinkIdx, String uid, int star, String comment) async {
-  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
-
-  return http.post(
-    Uri.parse('https://alcohol.bada.works/api/comments/'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      "Authorization": idToken!,
-    },
-    body: jsonEncode(<String, dynamic>{
-      'drink': drinkIdx,
-      'uid': uid,
-      'star': star,
-      'comment': comment
-    }),
-  );
-}
-
-Future<http.Response> deleteComment(int idx) async {
-  final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
-
-  return http.delete(
-    Uri.parse('https://alcohol.bada.works/api/comments/$idx/'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      "Authorization": idToken!,
-    },
-  );
-}
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({
@@ -72,18 +23,35 @@ class _SocialPageState extends State<SocialPage> {
 
   TextEditingController textController = TextEditingController();
 
+  final _commentService = CommentService();
+
   @override
   void initState() {
     super.initState();
 
     FirebaseAuth.instance.authStateChanges().listen((event) {
-      final comments = fetchComment(widget.drink.idx);
-      comments.then((value) {
-        setState(() {
-          _comments = value;
-        });
-      });
+      _loadComments();
     });
+  }
+
+  @override
+  void didUpdateWidget(SocialPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // drink가 변경되면 새로운 코멘트 로드
+    if (oldWidget.drink.idx != widget.drink.idx) {
+      _loadComments();
+    }
+  }
+
+  Future<void> _loadComments() async {
+    try {
+      final comments = await _commentService.fetchComments(widget.drink.idx);
+      setState(() {
+        _comments = comments;
+      });
+    } catch (e) {
+      // 에러 처리 (인증되지 않은 경우 등)
+    }
   }
 
   @override
@@ -123,14 +91,7 @@ class _SocialPageState extends State<SocialPage> {
                   ),
                   _getWriteForm()
                 ])
-              : const SignInScreen(
-                  providerConfigs: [
-                    GoogleProviderConfiguration(
-                      clientId:
-                          "920011687590-8t57g716g57grn0m1p2bsf4i48uleppd.apps.googleusercontent.com",
-                    ),
-                  ],
-                );
+              : const SignInScreen();
         },
       ),
     );
@@ -143,24 +104,43 @@ class _SocialPageState extends State<SocialPage> {
     });
   }
 
-  void _onSubmit() {
-    var result = addComment(widget.drink.idx,
-        (FirebaseAuth.instance.currentUser?.uid)!, _star, textController.text);
+  Future<void> _onSubmit() async {
+    try {
+      final newComment = await _commentService.addComment(
+        widget.drink.idx,
+        FirebaseAuth.instance.currentUser!.uid,
+        _star,
+        textController.text,
+      );
 
-    result.then((value) {
-      var idx = json.decode(utf8.decode(value.bodyBytes))["idx"];
       setState(() {
-        _comments.add(Comment(idx, (FirebaseAuth.instance.currentUser?.uid)!,
-            _star, textController.text));
+        _comments.add(newComment);
         textController.text = "";
       });
-    });
+    } catch (e) {
+      // 에러 처리
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('코멘트 추가 실패: $e')),
+        );
+      }
+    }
   }
 
-  void _onDelete(Comment commentToDelete) {
-    setState(() {
-      _comments.removeAt(_comments.indexOf(commentToDelete));
-    });
+  Future<void> _onDelete(Comment commentToDelete) async {
+    try {
+      await _commentService.deleteComment(commentToDelete.idx);
+      setState(() {
+        _comments.removeAt(_comments.indexOf(commentToDelete));
+      });
+    } catch (e) {
+      // 에러 처리
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('코멘트 삭제 실패: $e')),
+        );
+      }
+    }
   }
 
   Widget _getWriteForm() {
@@ -214,7 +194,6 @@ class CommentCard extends StatelessWidget {
     if (FirebaseAuth.instance.currentUser?.uid == comment.uid) {
       result.add(IconButton(
           onPressed: () {
-            deleteComment(comment.idx);
             onDelete(comment);
           },
           icon: const Icon(Icons.delete)));
