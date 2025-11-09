@@ -110,13 +110,37 @@ class CurrentDrinkIndex extends _$CurrentDrinkIndex {
   }
 }
 
+/// 현재 선택된 칵테일 ID (필터링에 영향받지 않음)
+@riverpod
+class CurrentDrinkId extends _$CurrentDrinkId {
+  @override
+  int? build() => null;
+
+  void update(int? drinkId) {
+    state = drinkId;
+  }
+}
+
 /// 현재 선택된 칵테일
 @riverpod
 Future<Drink?> currentDrink(CurrentDrinkRef ref) async {
-  final drinks = await ref.watch(filteredDrinksProvider.future);
-  final index = ref.watch(currentDrinkIndexProvider);
+  final drinkId = ref.watch(currentDrinkIdProvider);
 
-  if (drinks.isEmpty) return null;
-  if (index >= drinks.length) return drinks.last;
-  return drinks[index];
+  // ID가 설정되지 않았으면 인덱스 기반으로 fallback
+  if (drinkId == null) {
+    final drinks = await ref.watch(filteredDrinksProvider.future);
+    final index = ref.watch(currentDrinkIndexProvider);
+
+    if (drinks.isEmpty) return null;
+    if (index >= drinks.length) return drinks.last;
+    return drinks[index];
+  }
+
+  // ID 기반으로 전체 목록에서 칵테일 찾기
+  final allDrinks = await ref.watch(drinkListProvider.future);
+  try {
+    return allDrinks.firstWhere((drink) => drink.idx == drinkId);
+  } catch (e) {
+    return null;
+  }
 }

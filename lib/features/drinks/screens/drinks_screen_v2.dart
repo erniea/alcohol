@@ -216,6 +216,8 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
                 controller: _pageController,
                 onPageChanged: (int index) {
                   ref.read(currentDrinkIndexProvider.notifier).update(index);
+                  // ID 기반으로도 업데이트하여 필터링에 영향받지 않도록 함
+                  ref.read(currentDrinkIdProvider.notifier).update(drinks[index].idx);
                 },
                 scrollDirection: Axis.vertical,
                 itemCount: drinks.length,

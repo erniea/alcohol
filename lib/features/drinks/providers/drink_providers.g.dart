@@ -25,7 +25,7 @@ final filteredDrinksProvider = AutoDisposeFutureProvider<List<Drink>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FilteredDrinksRef = AutoDisposeFutureProviderRef<List<Drink>>;
-String _$currentDrinkHash() => r'6bebc0b8d4f50c162855345b327d6de11ba8a4f7';
+String _$currentDrinkHash() => r'bad7a11c3130c93c56c8e0dc08cdb8492cf88a92';
 
 /// 현재 선택된 칵테일
 ///
@@ -112,5 +112,23 @@ final currentDrinkIndexProvider =
 );
 
 typedef _$CurrentDrinkIndex = AutoDisposeNotifier<int>;
+String _$currentDrinkIdHash() => r'04e5a5bbfb033b6808324d408f681794efc6dc4c';
+
+/// 현재 선택된 칵테일 ID (필터링에 영향받지 않음)
+///
+/// Copied from [CurrentDrinkId].
+@ProviderFor(CurrentDrinkId)
+final currentDrinkIdProvider =
+    AutoDisposeNotifierProvider<CurrentDrinkId, int?>.internal(
+  CurrentDrinkId.new,
+  name: r'currentDrinkIdProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$currentDrinkIdHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$CurrentDrinkId = AutoDisposeNotifier<int?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
