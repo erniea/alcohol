@@ -56,56 +56,78 @@ class DrinkManagement extends ConsumerWidget {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: drink.recipe.available
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(context).colorScheme.errorContainer,
-                      child: Icon(
-                        Icons.local_bar,
-                        color: drink.recipe.available
-                            ? Theme.of(context).colorScheme.onPrimaryContainer
-                            : Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                    ),
-                    title: Text(
-                      drink.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (drink.desc.isNotEmpty)
-                          Text(
-                            drink.desc,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '재료: ${drink.recipe.elements.length}개',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => RecipeEditDialog(drink: drink),
-                        );
-                      },
-                    ),
+                  child: InkWell(
                     onTap: () {
                       showDialog(
                         context: context,
                         builder: (context) => RecipeEditDialog(drink: drink),
                       );
                     },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: drink.recipe.available
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context).colorScheme.errorContainer,
+                            child: Icon(
+                              Icons.local_bar,
+                              color: drink.recipe.available
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onErrorContainer,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  drink.name,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                if (drink.desc.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    drink.desc,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.restaurant_menu,
+                                      size: 14,
+                                      color: Theme.of(context).colorScheme.outline,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '재료 ${drink.recipe.elements.length}개',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.outline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },

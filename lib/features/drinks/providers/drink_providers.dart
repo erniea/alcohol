@@ -78,7 +78,7 @@ Future<List<Drink>> filteredDrinks(Ref ref) async {
 
   return drinksAsync.when(
     data: (drinks) {
-      var filtered = drinks.where((drink) => drink.recipe.available).toList();
+      var filtered = drinks;
 
       // 텍스트 필터 적용
       if (textFilter.isNotEmpty) {
@@ -89,9 +89,13 @@ Future<List<Drink>> filteredDrinks(Ref ref) async {
 
       // 재료 필터 적용
       if (baseFilter.isNotEmpty) {
+        // 선택된 재료를 모두 포함하는 칵테일만 필터링
         filtered = filtered.where((drink) {
-          return baseFilter.any((baseIdx) => drink.baseContains(baseIdx));
+          return baseFilter.every((baseIdx) => drink.baseContains(baseIdx));
         }).toList();
+      } else {
+        // 재료 필터가 없을 때는 제조 가능한 것만 표시
+        filtered = filtered.where((drink) => drink.recipe.available).toList();
       }
 
       return filtered;
