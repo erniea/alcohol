@@ -65,7 +65,7 @@ class BaseList extends _$BaseList {
 
 /// 재고가 있는 재료만 필터링
 @riverpod
-Future<List<Base>> inStockBases(InStockBasesRef ref) async {
+Future<List<Base>> inStockBases(Ref ref) async {
   final basesAsync = ref.watch(baseListProvider);
 
   return basesAsync.when(

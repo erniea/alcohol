@@ -1,8 +1,12 @@
 import 'package:alcohol/models/drink.dart';
 import 'package:alcohol/features/drinks/providers/base_providers.dart';
+import 'package:alcohol/features/drinks/providers/drink_providers.dart';
 import 'package:alcohol/services/recipe_service.dart';
+import 'package:alcohol/services/image_upload_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:typed_data';
+import 'dart:html' as html;
 
 class RecipeEditDialog extends ConsumerStatefulWidget {
   final Drink drink;
@@ -15,7 +19,12 @@ class RecipeEditDialog extends ConsumerStatefulWidget {
 
 class _RecipeEditDialogState extends ConsumerState<RecipeEditDialog> {
   final _recipeService = RecipeService();
-  late List<_RecipeEditItem> _items;
+  final _imageUploadService = ImageUploadService();
+  List<_RecipeEditItem> _items = [];
+
+  Uint8List? _selectedImageBytes;
+  String? _selectedFileName;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -76,6 +85,131 @@ class _RecipeEditDialogState extends ConsumerState<RecipeEditDialog> {
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // 이미지 섹션
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.image, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        '칵테일 이미지',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (_selectedImageBytes != null)
+                    Stack(
+                      children: [
+                        Container(
+                          height: 150,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: Theme.of(context).dividerColor),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.memory(
+                              _selectedImageBytes!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black54,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _selectedImageBytes = null;
+                                _selectedFileName = null;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (widget.drink.img.isNotEmpty)
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).dividerColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          widget.drink.img,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(Icons.broken_image, size: 48),
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).dividerColor),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image_not_supported,
+                              size: 48,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '이미지 없음',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _isUploadingImage ? null : _pickImage,
+                    icon: const Icon(Icons.upload),
+                    label: const Text('이미지 변경'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 40),
+                    ),
                   ),
                 ],
               ),
@@ -211,9 +345,15 @@ class _RecipeEditDialogState extends ConsumerState<RecipeEditDialog> {
                   ),
                   const SizedBox(height: 8),
                   FilledButton.icon(
-                    onPressed: () => _saveRecipe(context),
-                    icon: const Icon(Icons.save),
-                    label: const Text('저장'),
+                    onPressed: _isUploadingImage ? null : () => _saveRecipe(context),
+                    icon: _isUploadingImage
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save),
+                    label: Text(_isUploadingImage ? '업로드 중...' : '저장'),
                   ),
                 ],
               ),
@@ -264,9 +404,85 @@ class _RecipeEditDialogState extends ConsumerState<RecipeEditDialog> {
     );
   }
 
+  Future<void> _pickImage() async {
+    try {
+      // HTML input element 생성
+      final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+      uploadInput.accept = 'image/*';
+      uploadInput.click();
+
+      await uploadInput.onChange.first;
+
+      final files = uploadInput.files;
+      if (files == null || files.isEmpty) {
+        return;
+      }
+
+      final file = files[0];
+
+      // FileReader로 파일 읽기
+      final reader = html.FileReader();
+      reader.readAsArrayBuffer(file);
+
+      await reader.onLoadEnd.first;
+
+      if (reader.result == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('이미지 데이터를 읽을 수 없습니다')),
+          );
+        }
+        return;
+      }
+
+      final bytes = reader.result as Uint8List;
+
+      setState(() {
+        _selectedImageBytes = bytes;
+        _selectedFileName = file.name;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미지 선택 실패: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _saveRecipe(BuildContext context) async {
     try {
-      // 각 항목 업데이트
+      // 1. 이미지 업로드 (선택된 경우)
+      if (_selectedImageBytes != null) {
+        setState(() {
+          _isUploadingImage = true;
+        });
+
+        try {
+          final fileName = _selectedFileName ??
+              'drink_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+          await _imageUploadService.uploadImageForDrink(
+            widget.drink.idx,
+            _selectedImageBytes!,
+            fileName,
+          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('이미지 업로드 실패: $e')),
+            );
+          }
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+            });
+          }
+        }
+      }
+
+      // 2. 레시피 항목 업데이트
       for (var item in _items) {
         await _recipeService.updateRecipe(
           item.idx,
@@ -275,10 +491,13 @@ class _RecipeEditDialogState extends ConsumerState<RecipeEditDialog> {
         );
       }
 
+      // 3. 칵테일 목록 새로고침
+      ref.invalidate(drinkListProvider);
+
       if (context.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('레시피가 저장되었습니다')),
+          const SnackBar(content: Text('저장되었습니다')),
         );
       }
     } catch (e) {

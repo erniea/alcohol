@@ -8,24 +8,24 @@ part 'service_providers.g.dart';
 
 /// DrinkService 인스턴스 제공
 @riverpod
-DrinkService drinkService(DrinkServiceRef ref) {
+DrinkService drinkService(Ref ref) {
   return DrinkService();
 }
 
 /// BaseService 인스턴스 제공
 @riverpod
-BaseService baseService(BaseServiceRef ref) {
+BaseService baseService(Ref ref) {
   return BaseService();
 }
 
 /// CommentService 인스턴스 제공
 @riverpod
-CommentService commentService(CommentServiceRef ref) {
+CommentService commentService(Ref ref) {
   return CommentService();
 }
 
 /// RecipeService 인스턴스 제공
 @riverpod
-RecipeService recipeService(RecipeServiceRef ref) {
+RecipeService recipeService(Ref ref) {
   return RecipeService();
 }

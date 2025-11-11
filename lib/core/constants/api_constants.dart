@@ -17,4 +17,5 @@ class ApiConstants {
   static String deleteRecipe(int idx) => '$baseUrl/postrecipe/$idx/';
   static String deleteComment(int idx) => '$baseUrl/comments/$idx/';
   static String drinkComments(int drinkIdx) => '$baseUrl/comments/?search=$drinkIdx';
+  static String uploadImage(int drinkIdx) => '$baseUrl/upload-image/$drinkIdx/';
 }

@@ -6,7 +6,7 @@ class Base {
   Base(this.idx, this.name, this.inStock);
 
   factory Base.fromJson(Map<String, dynamic> j) {
-    return Base(j["idx"], j["name"], j["instock"]);
+    return Base(j["idx"], j["name"] ?? "", j["instock"] ?? false);
   }
 
   Map<String, dynamic> toJson() {

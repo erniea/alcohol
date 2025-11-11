@@ -135,6 +135,7 @@ class BaseManagement extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'base_fab',
         onPressed: () {
           _showAddBaseDialog(context, ref);
         },

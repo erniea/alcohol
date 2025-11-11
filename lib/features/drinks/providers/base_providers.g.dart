@@ -6,40 +6,90 @@ part of 'base_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$inStockBasesHash() => r'b0040a1955b6080d17831d4db5f71ede6ed35a50';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// 재료 목록을 가져오는 Provider
 
-/// 재고가 있는 재료만 필터링
-///
-/// Copied from [inStockBases].
-@ProviderFor(inStockBases)
-final inStockBasesProvider = AutoDisposeFutureProvider<List<Base>>.internal(
-  inStockBases,
-  name: r'inStockBasesProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$inStockBasesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(BaseList)
+const baseListProvider = BaseListProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef InStockBasesRef = AutoDisposeFutureProviderRef<List<Base>>;
+/// 재료 목록을 가져오는 Provider
+final class BaseListProvider
+    extends $AsyncNotifierProvider<BaseList, List<Base>> {
+  /// 재료 목록을 가져오는 Provider
+  const BaseListProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'baseListProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$baseListHash();
+
+  @$internal
+  @override
+  BaseList create() => BaseList();
+}
+
 String _$baseListHash() => r'0f3a5fc418855e87a506029a1bf4bbe89c915e86';
 
 /// 재료 목록을 가져오는 Provider
-///
-/// Copied from [BaseList].
-@ProviderFor(BaseList)
-final baseListProvider =
-    AutoDisposeAsyncNotifierProvider<BaseList, List<Base>>.internal(
-  BaseList.new,
-  name: r'baseListProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$baseListHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$BaseList = AutoDisposeAsyncNotifier<List<Base>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$BaseList extends $AsyncNotifier<List<Base>> {
+  FutureOr<List<Base>> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<List<Base>>, List<Base>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<Base>>, List<Base>>,
+        AsyncValue<List<Base>>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}
+
+/// 재고가 있는 재료만 필터링
+
+@ProviderFor(inStockBases)
+const inStockBasesProvider = InStockBasesProvider._();
+
+/// 재고가 있는 재료만 필터링
+
+final class InStockBasesProvider extends $FunctionalProvider<
+        AsyncValue<List<Base>>, List<Base>, FutureOr<List<Base>>>
+    with $FutureModifier<List<Base>>, $FutureProvider<List<Base>> {
+  /// 재고가 있는 재료만 필터링
+  const InStockBasesProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'inStockBasesProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$inStockBasesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Base>> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Base>> create(Ref ref) {
+    return inStockBases(ref);
+  }
+}
+
+String _$inStockBasesHash() => r'17f800546fb47fb321e4de576211348ad2ab4d68';

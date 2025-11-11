@@ -28,11 +28,16 @@ void main() async {
   );
 
   // Firebase UI Auth providers 초기화
-  FirebaseUIAuth.configureProviders([
-    GoogleProvider(
-      clientId: AppConstants.googleClientId,
-    ),
-  ]);
+  try {
+    FirebaseUIAuth.configureProviders([
+      GoogleProvider(
+        clientId: AppConstants.googleClientId,
+      ),
+    ]);
+  } catch (e) {
+    print('Google Sign-In 초기화 실패 (웹 환경일 수 있음): $e');
+    // 웹에서는 Google Sign-In이 없어도 앱이 실행되도록 함
+  }
 
   runApp(const ProviderScope(child: Alcohol()));
 }

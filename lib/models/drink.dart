@@ -11,7 +11,11 @@ class Drink {
 
   factory Drink.fromJson(Map<String, dynamic> j) {
     return Drink(
-        j["idx"], j["name"], j["desc"], j["img"], Recipe.fromJson(j["recipe"]));
+        j["idx"],
+        j["name"] ?? "",
+        j["desc"] ?? "",
+        j["img"] ?? "",
+        Recipe.fromJson(j["recipe"]));
   }
 
   Map<String, dynamic> toJson() {

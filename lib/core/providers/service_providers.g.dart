@@ -6,79 +6,188 @@ part of 'service_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$drinkServiceHash() => r'8c437e2dd764c95bf119852aabcdd8a2f4d022a9';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// DrinkService 인스턴스 제공
+
+@ProviderFor(drinkService)
+const drinkServiceProvider = DrinkServiceProvider._();
 
 /// DrinkService 인스턴스 제공
-///
-/// Copied from [drinkService].
-@ProviderFor(drinkService)
-final drinkServiceProvider = AutoDisposeProvider<DrinkService>.internal(
-  drinkService,
-  name: r'drinkServiceProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$drinkServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DrinkServiceRef = AutoDisposeProviderRef<DrinkService>;
-String _$baseServiceHash() => r'29ae39409aeff9b2a3b96b1402ab837450052c6b';
+final class DrinkServiceProvider
+    extends $FunctionalProvider<DrinkService, DrinkService, DrinkService>
+    with $Provider<DrinkService> {
+  /// DrinkService 인스턴스 제공
+  const DrinkServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'drinkServiceProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$drinkServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<DrinkService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  DrinkService create(Ref ref) {
+    return drinkService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DrinkService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DrinkService>(value),
+    );
+  }
+}
+
+String _$drinkServiceHash() => r'1283d558ce7b4e111654ae11efed3f3ce376b531';
 
 /// BaseService 인스턴스 제공
-///
-/// Copied from [baseService].
-@ProviderFor(baseService)
-final baseServiceProvider = AutoDisposeProvider<BaseService>.internal(
-  baseService,
-  name: r'baseServiceProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$baseServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef BaseServiceRef = AutoDisposeProviderRef<BaseService>;
-String _$commentServiceHash() => r'742811f77fd95a9800f96419f68bb860c3928cdd';
+@ProviderFor(baseService)
+const baseServiceProvider = BaseServiceProvider._();
+
+/// BaseService 인스턴스 제공
+
+final class BaseServiceProvider
+    extends $FunctionalProvider<BaseService, BaseService, BaseService>
+    with $Provider<BaseService> {
+  /// BaseService 인스턴스 제공
+  const BaseServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'baseServiceProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$baseServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<BaseService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BaseService create(Ref ref) {
+    return baseService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BaseService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BaseService>(value),
+    );
+  }
+}
+
+String _$baseServiceHash() => r'5bb7f3a3f4f517ec99199768842f085f513bdf06';
 
 /// CommentService 인스턴스 제공
-///
-/// Copied from [commentService].
-@ProviderFor(commentService)
-final commentServiceProvider = AutoDisposeProvider<CommentService>.internal(
-  commentService,
-  name: r'commentServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$commentServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CommentServiceRef = AutoDisposeProviderRef<CommentService>;
-String _$recipeServiceHash() => r'd2dd41348fbcbd1c73e0529a26e6065d206f3212';
+@ProviderFor(commentService)
+const commentServiceProvider = CommentServiceProvider._();
+
+/// CommentService 인스턴스 제공
+
+final class CommentServiceProvider
+    extends $FunctionalProvider<CommentService, CommentService, CommentService>
+    with $Provider<CommentService> {
+  /// CommentService 인스턴스 제공
+  const CommentServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'commentServiceProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$commentServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<CommentService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CommentService create(Ref ref) {
+    return commentService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CommentService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CommentService>(value),
+    );
+  }
+}
+
+String _$commentServiceHash() => r'2f5f8be9e24be6299b273772e9a6508d452fe50d';
 
 /// RecipeService 인스턴스 제공
-///
-/// Copied from [recipeService].
-@ProviderFor(recipeService)
-final recipeServiceProvider = AutoDisposeProvider<RecipeService>.internal(
-  recipeService,
-  name: r'recipeServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$recipeServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef RecipeServiceRef = AutoDisposeProviderRef<RecipeService>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+@ProviderFor(recipeService)
+const recipeServiceProvider = RecipeServiceProvider._();
+
+/// RecipeService 인스턴스 제공
+
+final class RecipeServiceProvider
+    extends $FunctionalProvider<RecipeService, RecipeService, RecipeService>
+    with $Provider<RecipeService> {
+  /// RecipeService 인스턴스 제공
+  const RecipeServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'recipeServiceProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$recipeServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<RecipeService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  RecipeService create(Ref ref) {
+    return recipeService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RecipeService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RecipeService>(value),
+    );
+  }
+}
+
+String _$recipeServiceHash() => r'd0d3c637f99bea2c32b17d11e68d092043da905a';

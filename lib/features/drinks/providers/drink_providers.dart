@@ -23,11 +23,13 @@ class DrinkList extends _$DrinkList {
   }
 
   /// 새 칵테일 추가
-  Future<void> addDrink(String name, String img, String desc) async {
+  Future<Drink?> addDrink(String name, String img, String desc) async {
     final drinkService = ref.read(drinkServiceProvider);
     final newDrink = await drinkService.addDrink(name, img, desc);
 
     state = state.whenData((drinks) => [...drinks, newDrink]);
+
+    return newDrink;
   }
 }
 
@@ -69,7 +71,7 @@ class BaseFilter extends _$BaseFilter {
 
 /// 필터링된 칵테일 목록 (computed provider)
 @riverpod
-Future<List<Drink>> filteredDrinks(FilteredDrinksRef ref) async {
+Future<List<Drink>> filteredDrinks(Ref ref) async {
   final drinksAsync = ref.watch(drinkListProvider);
   final textFilter = ref.watch(textFilterProvider);
   final baseFilter = ref.watch(baseFilterProvider);
@@ -123,7 +125,7 @@ class CurrentDrinkId extends _$CurrentDrinkId {
 
 /// 현재 선택된 칵테일
 @riverpod
-Future<Drink?> currentDrink(CurrentDrinkRef ref) async {
+Future<Drink?> currentDrink(Ref ref) async {
   final drinkId = ref.watch(currentDrinkIdProvider);
 
   // ID가 설정되지 않았으면 인덱스 기반으로 fallback

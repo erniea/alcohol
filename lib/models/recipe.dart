@@ -8,7 +8,8 @@ class RecipeElement {
   RecipeElement(this.idx, this.base, this.volume);
 
   factory RecipeElement.fromJson(Map<String, dynamic> j) {
-    return RecipeElement(j["idx"], Base.fromJson(j["base"]), j["volume"]);
+    return RecipeElement(
+        j["idx"], Base.fromJson(j["base"]), j["volume"] ?? "");
   }
 
   Map<String, dynamic> toJson() {

@@ -21,18 +21,6 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
   void initState() {
     super.initState();
     _pageController = PageController();
-
-    // 필터가 변경되면 첫 페이지로 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen(filteredDrinksProvider, (previous, next) {
-        next.whenData((drinks) {
-          if (drinks.isNotEmpty && _pageController.hasClients) {
-            _pageController.jumpToPage(0);
-            ref.read(currentDrinkIndexProvider.notifier).update(0);
-          }
-        });
-      });
-    });
   }
 
   @override
@@ -47,6 +35,16 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
     final currentDrinkAsync = ref.watch(currentDrinkProvider);
     final baseFilter = ref.watch(baseFilterProvider);
     final textFilter = ref.watch(textFilterProvider);
+
+    // 필터가 변경되면 첫 페이지로 이동
+    ref.listen(filteredDrinksProvider, (previous, next) {
+      next.whenData((drinks) {
+        if (drinks.isNotEmpty && _pageController.hasClients) {
+          _pageController.jumpToPage(0);
+          ref.read(currentDrinkIndexProvider.notifier).update(0);
+        }
+      });
+    });
 
     return Scaffold(
       endDrawer: const FilterDrawer(),
