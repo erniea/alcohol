@@ -1,7 +1,6 @@
 import 'package:alcohol/core/constants/app_constants.dart';
 import 'package:alcohol/models/drink.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 class DrinkCard extends StatefulWidget {
   const DrinkCard({
@@ -55,6 +54,19 @@ class _DrinkCardState extends State<DrinkCard> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    // builder 밖에서 한 번만 생성해 애니메이션 프레임마다 리빌드되지 않도록 함.
+    // RepaintBoundary로 감싸 카드 내용(이미지·그림자 블러·그라데이션)을 한 번만
+    // 래스터화하고, 플립 Transform은 캐시된 레이어를 GPU에서 회전만 하도록 함.
+    // (이게 없으면 플립 프레임마다 카드 전체가 다시 그려져 프레임이 떨어짐)
+    final front = RepaintBoundary(child: DetailPage(drink: widget.drink));
+    final back = RepaintBoundary(
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()..rotateY(3.14159),
+        child: RecipePage(drink: widget.drink),
+      ),
+    );
+
     return GestureDetector(
       onTap: _flip,
       child: AnimatedBuilder(
@@ -68,13 +80,7 @@ class _DrinkCardState extends State<DrinkCard> with SingleTickerProviderStateMix
             transform: Matrix4.identity()
               ..setEntry(3, 2, 0.001)
               ..rotateY(angle),
-            child: showFront
-                ? DetailPage(drink: widget.drink)
-                : Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.identity()..rotateY(3.14159),
-                    child: RecipePage(drink: widget.drink),
-                  ),
+            child: showFront ? front : back,
           );
         },
       ),
@@ -92,8 +98,6 @@ class DetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl =
-        drink.img.isNotEmpty ? drink.img : AppConstants.defaultDrinkImage;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -113,70 +117,52 @@ class DetailPage extends StatelessWidget {
         child: Stack(
           children: [
             // 배경 이미지
+            // 이미지가 없는 칵테일은 번들된 기본 이미지를 사용해
+            // 네트워크 요청 없이 즉시 렌더링되도록 함
             Positioned.fill(
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.tertiaryContainer,
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.errorContainer,
-                          colorScheme.errorContainer.withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.local_bar_rounded,
-                            size: 80,
-                            color: colorScheme.onErrorContainer.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            '이미지 로드 실패',
-                            style: TextStyle(
-                              color: colorScheme.onErrorContainer,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+              child: drink.img.isEmpty
+                  ? Image.asset(
+                      AppConstants.defaultDrinkAsset,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.network(
+                      drink.img,
+                      fit: BoxFit.cover,
+                      // 원본 해상도 대신 카드 크기에 맞춰 디코딩 (메모리/디코딩 시간 절약)
+                      cacheWidth: 1200,
+                      gaplessPlayback: true,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colorScheme.primaryContainer,
+                                colorScheme.tertiaryContainer,
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        );
+                      },
+                      // 로드 실패 시에도 기본 이미지로 대체 (재시도/에러 UI 없음)
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          AppConstants.defaultDrinkAsset,
+                          fit: BoxFit.cover,
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
 
             // 그라데이션 오버레이
@@ -204,12 +190,11 @@ class DetailPage extends StatelessWidget {
               bottom: 20,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
+                // BackdropFilter 블러는 GPU 비용이 커서 반투명 배경으로 대체
+                child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.black.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: Colors.white.withOpacity(0.2),
@@ -303,7 +288,6 @@ class DetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
               ),
             ),
           ],
@@ -405,15 +389,16 @@ class RecipePage extends StatelessWidget {
 
                     return TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0.0, end: 1.0),
-                      duration: Duration(milliseconds: 300 + (index * 100)),
+                      // 스태거는 짧게 유지 — 플립과 겹치는 시간을 줄임
+                      duration: Duration(milliseconds: 250 + (index * 60)),
                       curve: Curves.easeOutCubic,
+                      // Opacity 위젯은 웹(skwasm)에서 항목마다 saveLayer를 유발해
+                      // 플립과 동시에 돌면 프레임이 떨어짐. saveLayer가 없는
+                      // Transform.translate 슬라이드 등장만 사용.
                       builder: (context, value, child) {
                         return Transform.translate(
-                          offset: Offset(0, 20 * (1 - value)),
-                          child: Opacity(
-                            opacity: value,
-                            child: child,
-                          ),
+                          offset: Offset(0, 24 * (1 - value)),
+                          child: child,
                         );
                       },
                       child: Container(

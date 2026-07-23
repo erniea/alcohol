@@ -21,6 +21,9 @@ flutter build web \
   --dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID \
   --dart-define=GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
   --dart-define=DEFAULT_DRINK_IMAGE=$DEFAULT_DRINK_IMAGE \
+  --wasm \
   --release
 
 echo "✅ 빌드 완료: build/web/"
+echo "ℹ️  WebAssembly(skwasm) 빌드입니다. 서버 nginx에서 다음 MIME/압축이 필요합니다:"
+echo "   .mjs  → text/javascript,  .wasm → application/wasm  (+ gzip)"
