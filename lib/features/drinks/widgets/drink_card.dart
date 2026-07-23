@@ -103,12 +103,15 @@ class DetailPage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
+        // 블러 커널은 물리 픽셀 기준이라 고DPI(예: S22 Ultra, DPR~3) 화면에서
+        // 비용이 급증함. 풀스크린 카드에 큰 블러는 픽셀당 연산이 비싸 프레임을
+        // 떨어뜨리므로 블러/스프레드를 줄여 시각적 손실 없이 부담을 낮춤.
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.2),
-            blurRadius: 20,
-            spreadRadius: -5,
-            offset: const Offset(0, 10),
+            color: colorScheme.primary.withOpacity(0.18),
+            blurRadius: 8,
+            spreadRadius: -2,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -313,12 +316,13 @@ class RecipePage extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
+        // 고DPI 화면에서 큰 블러 그림자 비용이 커 축소 (DetailPage와 동일 이유)
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.2),
-            blurRadius: 20,
-            spreadRadius: -5,
-            offset: const Offset(0, 10),
+            color: colorScheme.primary.withOpacity(0.18),
+            blurRadius: 8,
+            spreadRadius: -2,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -504,9 +508,9 @@ class RecipePage extends StatelessWidget {
                       color: (drink.recipe.available
                               ? colorScheme.primary
                               : colorScheme.error)
-                          .withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                          .withOpacity(0.25),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
