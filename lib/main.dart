@@ -1,12 +1,9 @@
-import 'package:alcohol/core/constants/app_constants.dart';
 import 'package:alcohol/core/constants/app_theme.dart';
+import 'package:alcohol/core/firebase_init.dart';
 import 'package:alcohol/features/admin/screens/admin_screen.dart';
 import 'package:alcohol/features/drinks/screens/drinks_screen_v2.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -16,28 +13,11 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-        apiKey: AppConstants.firebaseApiKey,
-        authDomain: AppConstants.firebaseAuthDomain,
-        projectId: AppConstants.firebaseProjectId,
-        storageBucket: AppConstants.firebaseStorageBucket,
-        messagingSenderId: AppConstants.firebaseMessagingSenderId,
-        appId: AppConstants.firebaseAppId,
-        measurementId: AppConstants.firebaseMeasurementId),
-  );
-
-  // Firebase UI Auth providers 초기화
-  try {
-    FirebaseUIAuth.configureProviders([
-      GoogleProvider(
-        clientId: AppConstants.googleClientId,
-      ),
-    ]);
-  } catch (e) {
-    print('Google Sign-In 초기화 실패 (웹 환경일 수 있음): $e');
-    // 웹에서는 Google Sign-In이 없어도 앱이 실행되도록 함
-  }
+  // Firebase는 백그라운드에서 초기화 — 첫 화면 표시를 막지 않음
+  // (평가 탭에서 완료를 기다림)
+  FirebaseInit.ensureInitialized().catchError((e) {
+    debugPrint('Firebase 초기화 실패: $e');
+  });
 
   runApp(const ProviderScope(child: Alcohol()));
 }

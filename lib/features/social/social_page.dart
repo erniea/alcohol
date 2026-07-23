@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:async';
+import 'package:alcohol/core/firebase_init.dart';
 import 'package:alcohol/models/comment.dart';
 import 'package:alcohol/models/drink.dart';
 import 'package:alcohol/services/comment_service.dart';
@@ -25,13 +26,27 @@ class _SocialPageState extends State<SocialPage> {
 
   final _commentService = CommentService();
 
+  late final Future<void> _firebaseReady;
+  StreamSubscription<User?>? _authSubscription;
+
   @override
   void initState() {
     super.initState();
 
-    FirebaseAuth.instance.authStateChanges().listen((event) {
-      _loadComments();
+    _firebaseReady = FirebaseInit.ensureInitialized();
+    _firebaseReady.then((_) {
+      if (!mounted) return;
+      _authSubscription = FirebaseAuth.instance.authStateChanges().listen((event) {
+        _loadComments();
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,22 +91,34 @@ class _SocialPageState extends State<SocialPage> {
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          return snapshot.hasData
-              ? Column(children: [
-                  Text(widget.drink.name),
-                  Expanded(
-                    child: ListView(
-                      children: widgets,
-                      shrinkWrap: true,
-                      //physics: ClampingScrollPhysics(),
-                    ),
-                  ),
-                  _getWriteForm()
-                ])
-              : const SignInScreen();
+      child: FutureBuilder(
+        future: _firebaseReady,
+        builder: (context, initSnapshot) {
+          if (initSnapshot.hasError) {
+            return Center(child: Text('로그인 초기화 실패: ${initSnapshot.error}'));
+          }
+          if (initSnapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return StreamBuilder(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              return snapshot.hasData
+                  ? Column(children: [
+                      Text(widget.drink.name),
+                      Expanded(
+                        child: ListView(
+                          children: widgets,
+                          shrinkWrap: true,
+                          //physics: ClampingScrollPhysics(),
+                        ),
+                      ),
+                      _getWriteForm()
+                    ])
+                  : const SignInScreen();
+            },
+          );
         },
       ),
     );
