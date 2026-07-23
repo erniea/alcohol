@@ -1,30 +1,19 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility that Flutter provides. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:alcohol/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const Alcohol());
+  testWidgets('메인 화면이 렌더링된다', (WidgetTester tester) async {
+    await tester.pumpWidget(const ProviderScope(child: Alcohol()));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // 네트워크 요청 실패(테스트 환경) 처리까지 프레임 진행
+    await tester.pump(const Duration(seconds: 1));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // 하단 네비게이션과 칵테일 탭이 표시되는지 확인
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('칵테일'), findsWidgets);
+    expect(find.text('평가'), findsWidgets);
   });
 }
