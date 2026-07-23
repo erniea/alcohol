@@ -70,39 +70,35 @@ class BaseFilter extends _$BaseFilter {
 }
 
 /// 필터링된 칵테일 목록 (computed provider)
+///
+/// 필터링은 순수 동기 연산이므로 Future로 감싸지 않는다.
+/// (async였을 때는 키 입력마다 loading 상태를 거치며 화면이 리빌드됐음)
 @riverpod
-Future<List<Drink>> filteredDrinks(Ref ref) async {
-  final drinksAsync = ref.watch(drinkListProvider);
+List<Drink> filteredDrinks(Ref ref) {
+  final drinks = ref.watch(drinkListProvider).value ?? [];
   final textFilter = ref.watch(textFilterProvider);
   final baseFilter = ref.watch(baseFilterProvider);
 
-  return drinksAsync.when(
-    data: (drinks) {
-      var filtered = drinks;
+  var filtered = drinks;
 
-      // 텍스트 필터 적용
-      if (textFilter.isNotEmpty) {
-        filtered = filtered
-            .where((drink) => drink.name.contains(textFilter))
-            .toList();
-      }
+  // 텍스트 필터 적용
+  if (textFilter.isNotEmpty) {
+    filtered =
+        filtered.where((drink) => drink.name.contains(textFilter)).toList();
+  }
 
-      // 재료 필터 적용
-      if (baseFilter.isNotEmpty) {
-        // 선택된 재료를 모두 포함하는 칵테일만 필터링
-        filtered = filtered.where((drink) {
-          return baseFilter.every((baseIdx) => drink.baseContains(baseIdx));
-        }).toList();
-      } else {
-        // 재료 필터가 없을 때는 제조 가능한 것만 표시
-        filtered = filtered.where((drink) => drink.recipe.available).toList();
-      }
+  // 재료 필터 적용
+  if (baseFilter.isNotEmpty) {
+    // 선택된 재료를 모두 포함하는 칵테일만 필터링
+    filtered = filtered.where((drink) {
+      return baseFilter.every((baseIdx) => drink.baseContains(baseIdx));
+    }).toList();
+  } else {
+    // 재료 필터가 없을 때는 제조 가능한 것만 표시
+    filtered = filtered.where((drink) => drink.recipe.available).toList();
+  }
 
-      return filtered;
-    },
-    loading: () => [],
-    error: (_, __) => [],
-  );
+  return filtered;
 }
 
 /// 현재 선택된 칵테일 인덱스
@@ -129,12 +125,12 @@ class CurrentDrinkId extends _$CurrentDrinkId {
 
 /// 현재 선택된 칵테일
 @riverpod
-Future<Drink?> currentDrink(Ref ref) async {
+Drink? currentDrink(Ref ref) {
   final drinkId = ref.watch(currentDrinkIdProvider);
 
   // ID가 설정되지 않았으면 인덱스 기반으로 fallback
   if (drinkId == null) {
-    final drinks = await ref.watch(filteredDrinksProvider.future);
+    final drinks = ref.watch(filteredDrinksProvider);
     final index = ref.watch(currentDrinkIndexProvider);
 
     if (drinks.isEmpty) return null;
@@ -143,10 +139,9 @@ Future<Drink?> currentDrink(Ref ref) async {
   }
 
   // ID 기반으로 전체 목록에서 칵테일 찾기
-  final allDrinks = await ref.watch(drinkListProvider.future);
-  try {
-    return allDrinks.firstWhere((drink) => drink.idx == drinkId);
-  } catch (e) {
-    return null;
+  final allDrinks = ref.watch(drinkListProvider).value ?? [];
+  for (final drink in allDrinks) {
+    if (drink.idx == drinkId) return drink;
   }
+  return null;
 }

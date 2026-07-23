@@ -60,25 +60,24 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredDrinksAsync = ref.watch(filteredDrinksProvider);
-    final currentDrinkAsync = ref.watch(currentDrinkProvider);
-    final baseFilter = ref.watch(baseFilterProvider);
-    final textFilter = ref.watch(textFilterProvider);
-
-    // 필터가 변경되면 첫 페이지로 이동
+    // 필터 결과가 바뀌면: 보고 있던 칵테일이 여전히 목록에 있으면 그 위치를 유지하고,
+    // 없어졌을 때만 첫 페이지로 이동 (검색 입력마다 페이지가 리셋되는 문제 방지)
     ref.listen(filteredDrinksProvider, (previous, next) {
-      next.whenData((drinks) {
-        if (drinks.isNotEmpty) {
-          // 먼저 상태 업데이트
-          ref.read(currentDrinkIndexProvider.notifier).update(0);
-          ref.read(currentDrinkIdProvider.notifier).update(drinks[0].idx);
+      if (next.isEmpty) {
+        ref.read(currentDrinkIdProvider.notifier).update(null);
+        return;
+      }
 
-          // PageController가 준비되면 페이지 이동
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_pageController.hasClients && mounted) {
-              _pageController.jumpToPage(0);
-            }
-          });
+      final currentId = ref.read(currentDrinkIdProvider);
+      var targetIndex = next.indexWhere((drink) => drink.idx == currentId);
+      if (targetIndex == -1) targetIndex = 0;
+
+      ref.read(currentDrinkIndexProvider.notifier).update(targetIndex);
+      ref.read(currentDrinkIdProvider.notifier).update(next[targetIndex].idx);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients && mounted) {
+          _pageController.jumpToPage(targetIndex);
         }
       });
     });
@@ -111,8 +110,13 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          _buildDrinksTab(filteredDrinksAsync),
-          _buildSocialTab(currentDrinkAsync),
+          _buildDrinksTab(),
+          // 평가 탭은 실제로 열었을 때만 생성
+          // (칵테일 스와이프마다 코멘트 API가 호출되는 것을 방지)
+          if (_currentIndex == 1)
+            _buildSocialTab()
+          else
+            const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -138,7 +142,8 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
     );
   }
 
-  Widget _buildDrinksTab(AsyncValue<List> filteredDrinksAsync) {
+  Widget _buildDrinksTab() {
+    final drinksAsync = ref.watch(drinkListProvider);
     final basesAsync = ref.watch(inStockBasesProvider);
     final baseFilter = ref.watch(baseFilterProvider);
     final textFilter = ref.watch(textFilterProvider);
@@ -309,8 +314,9 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
 
         // 칵테일 목록
         Expanded(
-          child: filteredDrinksAsync.when(
-            data: (drinks) {
+          child: drinksAsync.when(
+            data: (_) {
+              final drinks = ref.watch(filteredDrinksProvider);
               if (drinks.isEmpty) {
                 return Center(
                   child: Column(
@@ -349,6 +355,8 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
 
               return PageView.builder(
                 controller: _pageController,
+                // 인접 카드를 미리 빌드해 스와이프 시 이미지가 준비되도록 함
+                allowImplicitScrolling: true,
                 onPageChanged: (int index) {
                   ref.read(currentDrinkIndexProvider.notifier).update(index);
                   ref
@@ -408,39 +416,32 @@ class _DrinksScreenV2State extends ConsumerState<DrinksScreenV2> {
     );
   }
 
-  Widget _buildSocialTab(AsyncValue currentDrinkAsync) {
-    return currentDrinkAsync.when(
-      data: (drink) {
-        if (drink == null) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '칵테일을 선택해주세요',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+  Widget _buildSocialTab() {
+    final drink = ref.watch(currentDrinkProvider);
+
+    if (drink == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
             ),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SocialPage(drink: drink),
-        );
-      },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      error: (error, stack) => Center(
-        child: Text('오류: $error'),
-      ),
+            const SizedBox(height: 16),
+            Text(
+              '칵테일을 선택해주세요',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SocialPage(drink: drink),
     );
   }
 }

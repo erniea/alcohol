@@ -161,16 +161,25 @@ abstract class _$BaseFilter extends $Notifier<Set<int>> {
 }
 
 /// 필터링된 칵테일 목록 (computed provider)
+///
+/// 필터링은 순수 동기 연산이므로 Future로 감싸지 않는다.
+/// (async였을 때는 키 입력마다 loading 상태를 거치며 화면이 리빌드됐음)
 
 @ProviderFor(filteredDrinks)
 const filteredDrinksProvider = FilteredDrinksProvider._();
 
 /// 필터링된 칵테일 목록 (computed provider)
+///
+/// 필터링은 순수 동기 연산이므로 Future로 감싸지 않는다.
+/// (async였을 때는 키 입력마다 loading 상태를 거치며 화면이 리빌드됐음)
 
-final class FilteredDrinksProvider extends $FunctionalProvider<
-        AsyncValue<List<Drink>>, List<Drink>, FutureOr<List<Drink>>>
-    with $FutureModifier<List<Drink>>, $FutureProvider<List<Drink>> {
+final class FilteredDrinksProvider
+    extends $FunctionalProvider<List<Drink>, List<Drink>, List<Drink>>
+    with $Provider<List<Drink>> {
   /// 필터링된 칵테일 목록 (computed provider)
+  ///
+  /// 필터링은 순수 동기 연산이므로 Future로 감싸지 않는다.
+  /// (async였을 때는 키 입력마다 loading 상태를 거치며 화면이 리빌드됐음)
   const FilteredDrinksProvider._()
       : super(
           from: null,
@@ -187,17 +196,24 @@ final class FilteredDrinksProvider extends $FunctionalProvider<
 
   @$internal
   @override
-  $FutureProviderElement<List<Drink>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $ProviderElement<List<Drink>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  FutureOr<List<Drink>> create(Ref ref) {
+  List<Drink> create(Ref ref) {
     return filteredDrinks(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<Drink> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<Drink>>(value),
+    );
   }
 }
 
-String _$filteredDrinksHash() => r'6a91ec56e92257503521740f62c6cf8868f31d85';
+String _$filteredDrinksHash() => r'bd1f8e9767a874cf957407ae4cb876e95c6c50c8';
 
 /// 현재 선택된 칵테일 인덱스
 
@@ -313,8 +329,7 @@ const currentDrinkProvider = CurrentDrinkProvider._();
 /// 현재 선택된 칵테일
 
 final class CurrentDrinkProvider
-    extends $FunctionalProvider<AsyncValue<Drink?>, Drink?, FutureOr<Drink?>>
-    with $FutureModifier<Drink?>, $FutureProvider<Drink?> {
+    extends $FunctionalProvider<Drink?, Drink?, Drink?> with $Provider<Drink?> {
   /// 현재 선택된 칵테일
   const CurrentDrinkProvider._()
       : super(
@@ -332,13 +347,21 @@ final class CurrentDrinkProvider
 
   @$internal
   @override
-  $FutureProviderElement<Drink?> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $ProviderElement<Drink?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
-  FutureOr<Drink?> create(Ref ref) {
+  Drink? create(Ref ref) {
     return currentDrink(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Drink? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Drink?>(value),
+    );
   }
 }
 
-String _$currentDrinkHash() => r'59f1b7102778aab6ddf48eaec80b0c18589a1c6a';
+String _$currentDrinkHash() => r'23a20645bf893fb305cf906ce4ca1558925159bb';
