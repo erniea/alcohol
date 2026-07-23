@@ -1,11 +1,10 @@
 import 'package:alcohol/features/drinks/providers/drink_providers.dart';
-import 'package:alcohol/features/drinks/providers/base_providers.dart';
 import 'package:alcohol/features/admin/widgets/recipe_edit_dialog.dart';
 import 'package:alcohol/services/image_upload_service.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:typed_data';
-import 'dart:html' as html;
 
 class DrinkManagement extends ConsumerWidget {
   const DrinkManagement({Key? key}) : super(key: key);
@@ -202,36 +201,14 @@ class _AddDrinkDialogState extends State<_AddDrinkDialog> {
 
   Future<void> _pickImage() async {
     try {
-      // HTML input element 생성
-      final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
-      uploadInput.accept = 'image/*';
-      uploadInput.click();
+      const typeGroup = XTypeGroup(
+        label: '이미지',
+        extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      );
+      final file = await openFile(acceptedTypeGroups: [typeGroup]);
+      if (file == null) return;
 
-      await uploadInput.onChange.first;
-
-      final files = uploadInput.files;
-      if (files == null || files.isEmpty) {
-        return;
-      }
-
-      final file = files[0];
-
-      // FileReader로 파일 읽기
-      final reader = html.FileReader();
-      reader.readAsArrayBuffer(file);
-
-      await reader.onLoadEnd.first;
-
-      if (reader.result == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('이미지 데이터를 읽을 수 없습니다')),
-          );
-        }
-        return;
-      }
-
-      final bytes = reader.result as Uint8List;
+      final bytes = await file.readAsBytes();
 
       setState(() {
         _selectedImageBytes = bytes;

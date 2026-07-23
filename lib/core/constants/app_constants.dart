@@ -1,6 +1,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConstants {
+  // 번들된 기본 칵테일 이미지 (네트워크 의존 없음)
+  static const String defaultDrinkAsset = 'assets/images/default_drink.png';
+
   // 우선순위: 1. --dart-define, 2. .env, 3. 기본값
 
   // Default images
