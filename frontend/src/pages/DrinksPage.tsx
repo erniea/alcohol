@@ -40,6 +40,9 @@ export default function DrinksPage() {
           d.recipe.some((el) => el.base.idx === idx),
         )
       }
+      // 검색 중에는 제조 불가(재료 부족) 칵테일도 표시
+      if (q) return true
+      // 기본(검색·필터 없음): 제조 가능한 것만
       return recipeAvailable(d.recipe)
     })
   }, [drinks, search, baseFilter])
