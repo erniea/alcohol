@@ -7,11 +7,10 @@ import {
   postComment,
 } from '../api/client'
 
-export function useComments(drinkIdx: number, enabled: boolean) {
+export function useComments(drinkIdx: number) {
   return useQuery({
     queryKey: ['comments', drinkIdx],
-    queryFn: async () => fetchComments(drinkIdx, await getIdToken()),
-    enabled,
+    queryFn: () => fetchComments(drinkIdx), // 조회는 비로그인 허용
   })
 }
 

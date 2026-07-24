@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { User } from 'firebase/auth'
 import { LogOut, Star, Trash2 } from 'lucide-react'
 import type { Drink } from '../api/types'
 import { useAuth } from '../hooks/auth'
@@ -6,42 +7,13 @@ import { useAddComment, useComments, useDeleteComment } from '../hooks/comments'
 import { signInWithGoogle, signOut } from '../lib/firebase'
 
 export default function SocialPanel({ drink }: { drink: Drink }) {
-  const { user, loading } = useAuth()
-
-  if (loading) {
-    return <Centered>불러오는 중…</Centered>
-  }
-
-  if (!user) {
-    return <SignIn />
-  }
-
-  return <CommentsView drink={drink} uid={user.uid} />
+  const { user } = useAuth()
+  // 댓글 조회는 로그인 여부와 무관하게 항상 노출, 작성/삭제만 로그인 필요
+  return <CommentsView drink={drink} user={user} />
 }
 
-function SignIn() {
-  const [error, setError] = useState('')
-  return (
-    <Centered>
-      <p className="mb-6 text-neutral-600 dark:text-neutral-300">
-        평가를 남기려면 로그인이 필요합니다
-      </p>
-      <button
-        onClick={() =>
-          signInWithGoogle().catch((e) => setError(e.message ?? String(e)))
-        }
-        className="flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-5 py-3 font-medium text-neutral-800 shadow-sm hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
-      >
-        <GoogleG />
-        Google로 로그인
-      </button>
-      {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-    </Centered>
-  )
-}
-
-function CommentsView({ drink, uid }: { drink: Drink; uid: string }) {
-  const { data: comments, isLoading, isError } = useComments(drink.idx, true)
+function CommentsView({ drink, user }: { drink: Drink; user: User | null }) {
+  const { data: comments, isLoading, isError } = useComments(drink.idx)
   const addComment = useAddComment(drink.idx)
   const deleteComment = useDeleteComment(drink.idx)
 
@@ -72,16 +44,18 @@ function CommentsView({ drink, uid }: { drink: Drink; uid: string }) {
             <span className="ml-1">평균 {avg}</span>
           </div>
         )}
-        <button
-          onClick={() => signOut()}
-          title="로그아웃"
-          className="rounded-full p-2 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-        >
-          <LogOut size={18} />
-        </button>
+        {user && (
+          <button
+            onClick={() => signOut()}
+            title="로그아웃"
+            className="rounded-full p-2 text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <LogOut size={18} />
+          </button>
+        )}
       </div>
 
-      {/* 코멘트 목록 */}
+      {/* 코멘트 목록 (로그인 없이 조회 가능) */}
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
         {isLoading && <p className="py-8 text-center text-neutral-500">불러오는 중…</p>}
         {isError && (
@@ -91,7 +65,7 @@ function CommentsView({ drink, uid }: { drink: Drink; uid: string }) {
         )}
         {comments && comments.length === 0 && (
           <p className="py-8 text-center text-neutral-500">
-            아직 평가가 없습니다. 첫 평가를 남겨보세요!
+            아직 평가가 없습니다{user ? '. 첫 평가를 남겨보세요!' : ''}
           </p>
         )}
         {comments?.map((c) => (
@@ -102,7 +76,7 @@ function CommentsView({ drink, uid }: { drink: Drink; uid: string }) {
             <div className="flex items-center">
               <Stars count={c.star} size={16} />
               <div className="flex-1" />
-              {c.uid === uid && (
+              {user && c.uid === user.uid && (
                 <button
                   onClick={() => deleteComment.mutate(c.idx)}
                   className="text-neutral-400 hover:text-red-500"
@@ -121,44 +95,94 @@ function CommentsView({ drink, uid }: { drink: Drink; uid: string }) {
         ))}
       </div>
 
-      {/* 작성 폼 */}
+      {/* 작성 영역: 로그인해야 작성 가능 */}
       <div className="border-t border-neutral-200 p-4 dark:border-neutral-800">
-        <div className="mb-2 flex justify-center gap-1">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <button key={i} onClick={() => setStar(i)} className="p-1">
-              <Star
-                size={26}
-                className={
-                  i <= star
-                    ? 'fill-amber-400 text-amber-400'
-                    : 'text-neutral-300 dark:text-neutral-600'
-                }
-              />
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
-            placeholder="평가를 입력하세요..."
-            className="flex-1 rounded-xl bg-neutral-100 px-4 py-2.5 outline-none focus:ring-2 focus:ring-brand dark:bg-neutral-800"
+        {user ? (
+          <WriteForm
+            star={star}
+            setStar={setStar}
+            text={text}
+            setText={setText}
+            onSubmit={submit}
+            pending={addComment.isPending}
+            error={addComment.isError ? (addComment.error as Error).message : null}
           />
-          <button
-            onClick={submit}
-            disabled={addComment.isPending || !text.trim()}
-            className="rounded-xl bg-brand px-5 py-2.5 font-semibold text-white disabled:opacity-50"
-          >
-            등록
-          </button>
-        </div>
-        {addComment.isError && (
-          <p className="mt-2 text-sm text-red-500">
-            등록 실패: {(addComment.error as Error).message}
-          </p>
+        ) : (
+          <SignInToWrite />
         )}
       </div>
+    </div>
+  )
+}
+
+function WriteForm({
+  star,
+  setStar,
+  text,
+  setText,
+  onSubmit,
+  pending,
+  error,
+}: {
+  star: number
+  setStar: (n: number) => void
+  text: string
+  setText: (s: string) => void
+  onSubmit: () => void
+  pending: boolean
+  error: string | null
+}) {
+  return (
+    <>
+      <div className="mb-2 flex justify-center gap-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <button key={i} onClick={() => setStar(i)} className="p-1">
+            <Star
+              size={26}
+              className={
+                i <= star
+                  ? 'fill-amber-400 text-amber-400'
+                  : 'text-neutral-300 dark:text-neutral-600'
+              }
+            />
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
+          placeholder="평가를 입력하세요..."
+          className="flex-1 rounded-xl bg-neutral-100 px-4 py-2.5 outline-none focus:ring-2 focus:ring-brand dark:bg-neutral-800"
+        />
+        <button
+          onClick={onSubmit}
+          disabled={pending || !text.trim()}
+          className="rounded-xl bg-brand px-5 py-2.5 font-semibold text-white disabled:opacity-50"
+        >
+          등록
+        </button>
+      </div>
+      {error && <p className="mt-2 text-sm text-red-500">등록 실패: {error}</p>}
+    </>
+  )
+}
+
+function SignInToWrite() {
+  const [error, setError] = useState('')
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button
+        onClick={() =>
+          signInWithGoogle().catch((e) => setError(e.message ?? String(e)))
+        }
+        className="flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-5 py-2.5 font-medium text-neutral-800 shadow-sm hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+      >
+        <GoogleG />
+        Google로 로그인하고 평가 남기기
+      </button>
+      {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   )
 }
@@ -193,13 +217,5 @@ function GoogleG() {
         d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
       />
     </svg>
-  )
-}
-
-function Centered({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-      {children}
-    </div>
   )
 }

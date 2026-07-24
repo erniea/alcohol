@@ -40,11 +40,9 @@ export async function fetchBases(): Promise<Base[]> {
   return asArray(j).map(parseBase)
 }
 
-/** 특정 칵테일의 코멘트 조회 (인증 필요) */
-export async function fetchComments(drinkIdx: number, idToken: string): Promise<Comment[]> {
-  const j = await getJson(`${API_BASE}/comments/?search=${drinkIdx}`, {
-    headers: { Authorization: idToken },
-  })
+/** 특정 칵테일의 코멘트 조회 (조회는 비로그인 허용 — 백엔드 IsAuthenticatedOrReadOnly) */
+export async function fetchComments(drinkIdx: number): Promise<Comment[]> {
+  const j = await getJson(`${API_BASE}/comments/?search=${drinkIdx}`)
   return asArray(j).map(parseComment)
 }
 
