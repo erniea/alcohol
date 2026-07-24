@@ -20,7 +20,8 @@ export default function FilterSheet({
 }: Props) {
   if (!open) return null
 
-  const inStock = bases.filter((b) => b.inStock)
+  // 보유하지 않은 재료도 모두 표시 (보유한 재료를 위로 정렬)
+  const list = [...bases].sort((a, b) => Number(b.inStock) - Number(a.inStock))
 
   return (
     <div className="fixed inset-0 z-30 flex flex-col justify-end">
@@ -40,7 +41,7 @@ export default function FilterSheet({
             <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
               재료 필터
             </h2>
-            <p className="text-xs text-neutral-500">보유한 재료를 선택하세요</p>
+            <p className="text-xs text-neutral-500">재료를 선택하세요</p>
           </div>
           {selected.size > 0 && (
             <button
@@ -62,13 +63,13 @@ export default function FilterSheet({
 
         {/* 재료 목록 */}
         <div className="max-h-[55vh] overflow-y-auto p-4">
-          {inStock.length === 0 ? (
+          {list.length === 0 ? (
             <p className="py-12 text-center text-neutral-500">
-              재고가 있는 재료가 없습니다
+              등록된 재료가 없습니다
             </p>
           ) : (
             <ul className="space-y-2">
-              {inStock.map((base) => {
+              {list.map((base) => {
                 const isSel = selected.has(base.idx)
                 return (
                   <li key={base.idx}>
@@ -93,11 +94,16 @@ export default function FilterSheet({
                         className={`flex-1 font-medium ${
                           isSel
                             ? 'font-semibold text-neutral-900 dark:text-neutral-100'
-                            : 'text-neutral-700 dark:text-neutral-300'
+                            : base.inStock
+                              ? 'text-neutral-700 dark:text-neutral-300'
+                              : 'text-neutral-400 dark:text-neutral-500'
                         }`}
                       >
                         {base.name}
                       </span>
+                      {!base.inStock && (
+                        <span className="text-xs text-neutral-400">재고 없음</span>
+                      )}
                       {isSel && <CircleCheck size={20} className="text-brand" />}
                     </button>
                   </li>
