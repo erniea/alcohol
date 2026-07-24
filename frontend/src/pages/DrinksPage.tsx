@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import DrinksFeed from '../components/DrinksFeed'
 import FilterSheet from '../components/FilterSheet'
+import SocialPanel from '../components/SocialPanel'
 import { useBases, useDrinks } from '../hooks/queries'
 import { recipeAvailable, type Drink } from '../api/types'
 
@@ -166,8 +167,10 @@ export default function DrinksPage() {
               <DrinksFeed drinks={filtered} onCurrentChange={setCurrentDrink} />
             )}
           </>
+        ) : currentDrink ? (
+          <SocialPanel key={currentDrink.idx} drink={currentDrink} />
         ) : (
-          <EvalPlaceholder drink={currentDrink} />
+          <EvalPlaceholder />
         )}
       </main>
 
@@ -249,18 +252,11 @@ function TabButton({
   )
 }
 
-function EvalPlaceholder({ drink }: { drink: Drink | null }) {
+function EvalPlaceholder() {
   return (
     <Centered>
       <MessageCircle size={56} className="mb-4 text-neutral-300" />
-      {drink ? (
-        <>
-          <p className="font-semibold">{drink.name}</p>
-          <p className="mt-1 text-sm">평가·코멘트 기능은 준비 중입니다</p>
-        </>
-      ) : (
-        '칵테일을 선택해주세요'
-      )}
+      칵테일을 선택해주세요
     </Centered>
   )
 }

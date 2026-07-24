@@ -51,14 +51,15 @@ export async function fetchComments(drinkIdx: number, idToken: string): Promise<
 // --- 코멘트 작성/삭제 (인증 필요) ---
 
 export async function postComment(
-  body: { drink: number; star: number; comment: string },
+  body: { drink: number; uid: string; star: number; comment: string },
   idToken: string,
-): Promise<void> {
-  await getJson(`${API_BASE}/comments/`, {
+): Promise<Comment> {
+  const j = await getJson(`${API_BASE}/comments/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: idToken },
     body: JSON.stringify(body),
   })
+  return parseComment(j)
 }
 
 export async function deleteComment(idx: number, idToken: string): Promise<void> {
