@@ -1,206 +1,86 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+이 파일은 이 저장소에서 작업하는 Claude Code에게 지침을 제공합니다.
 
 ## 프로젝트 개요
 
-Flutter로 구축된 칵테일 레시피 관리 앱입니다. 사용자는 재료(base)의 재고 상태에 따라 칵테일 목록을 필터링하고, 칵테일 레시피를 조회하며, Firebase 인증을 통해 평점과 코멘트를 작성할 수 있습니다.
+칵테일 레시피 관리 웹 앱입니다. 사용자는 보유 재료(base)에 따라 칵테일을 필터링하고,
+레시피를 조회하며, Firebase 인증으로 평점·코멘트를 남길 수 있습니다. 관리자 화면에서
+재료/칵테일/레시피를 편집하고 이미지를 업로드합니다.
+
+원래 Flutter로 개발됐으나 웹 로딩/렌더링 성능 문제로 **React 웹 네이티브 SPA로
+마이그레이션**되었습니다. (Flutter 코드는 제거됨. 필요 시 git 히스토리 참고.)
+
+## 기술 스택
+
+- **React + Vite + TypeScript** (SPA, `frontend/`)
+- **Tailwind CSS v4** (`@tailwindcss/vite`)
+- **TanStack Query** — 서버 상태/캐싱
+- **Firebase Web SDK** — Google 로그인 (프로젝트: `alcohol-bada`)
+- **lucide-react** — 아이콘
+- **react-router-dom** — 라우팅 (`/`, `/admin`)
+
+백엔드(Django REST, `alcohol.bada.works/api`)와 Firebase 프로젝트, nginx 정적
+호스팅은 그대로 재사용합니다. 백엔드는 이 저장소에 없습니다.
 
 ## 개발 명령어
 
-### 종속성 설치
+모든 프론트엔드 작업은 `frontend/`에서 수행합니다.
+
 ```bash
-flutter pub get
+cd frontend
+npm install
+npm run dev        # 개발 서버 (http://localhost:5173, /api 는 백엔드로 프록시)
+npm run build      # 프로덕션 빌드 → frontend/dist
+npm run lint       # 린트
 ```
 
-### 앱 실행
+배포 (저장소 루트에서):
 ```bash
-# 개발 모드로 실행
-flutter run
-
-# 웹으로 실행
-flutter run -d chrome
-
-# iOS 시뮬레이터로 실행
-flutter run -d ios
-
-# Android 에뮬레이터로 실행
-flutter run -d android
+./scripts/deploy_web.sh   # 빌드 + rsync로 서버 배포 (스크립트 상단 SERVER_* 확인)
 ```
 
-### 빌드
-```bash
-# Android APK 빌드
-flutter build apk
+## 코드 구조 (`frontend/src`)
 
-# iOS 빌드
-flutter build ios
+- `api/types.ts` — Drink/Base/RecipeElement/Comment 타입 + JSON 파서
+  - **주의**: 백엔드 JSON은 재고 필드가 `instock`(소문자). 파서에서 `inStock`으로 매핑.
+  - `recipeAvailable(recipe)` — 모든 재료가 재고에 있을 때 true.
+- `api/client.ts` — 조회/코멘트 fetch 래퍼. `API_BASE`는 dev에서 `/api`(프록시),
+  prod에서 `https://alcohol.bada.works/api`.
+- `api/admin.ts` — 관리자 API(재료/칵테일/레시피 CRUD, 이미지 업로드). **인증 불필요.**
+  - 이미지 업로드: 브라우저 canvas로 긴 변 1200px 리사이즈 → JPEG multipart PATCH.
+- `lib/firebase.ts` — Firebase 초기화 + Google 로그인. (웹 config는 공개 식별자라 인라인)
+- `hooks/` — `queries`(drinks/bases), `auth`, `comments`, `admin` mutation 훅.
+- `pages/DrinksPage.tsx` — 메인. 전체화면 세로 스와이프(CSS scroll-snap) + 검색/필터
+  바텀시트 + 하단 탭(칵테일/평가).
+- `pages/AdminPage.tsx` — 재료/칵테일 관리 두 탭.
+- `components/` — `DrinkCard`(CSS 3D 플립), `DrinksFeed`, `FilterSheet`, `SocialPanel`,
+  `admin/*`.
 
-# 웹 빌드
-flutter build web
-```
+## API 계약 (백엔드)
 
-### 테스트
-```bash
-# 모든 테스트 실행
-flutter test
+베이스 URL: `https://alcohol.bada.works/api`
 
-# 특정 테스트 파일 실행
-flutter test test/widget_test.dart
-```
+- `GET /drinks/?format=json`, `GET /bases/?format=json` — **DRF 페이지네이션**
+  (`{count,next,previous,results}`). `asArray()`로 `results` 추출.
+- `GET /comments/?search={drinkIdx}` — 코멘트 조회. 헤더 `Authorization: <idToken>` 필요.
+- `POST /comments/` — `{drink, uid, star, comment}`, 토큰 필요.
+- `DELETE /comments/{idx}/` — 토큰 필요.
+- `POST /postbase/` `{name, instock:"true"/"false"}`, `PATCH /postbase/{idx}/` `{name}` 또는 `{instock}`.
+- `POST /postdrink/` `{name, img, desc}`.
+- `POST /postrecipe/` `{drink, base, volume}`, `PATCH /postrecipe/{idx}/` `{base, volume}`, `DELETE /postrecipe/{idx}/`.
+- `PATCH /upload-image/{drinkIdx}/` — multipart, 필드명 `img`.
 
-### 코드 분석
-```bash
-# 린트 검사
-flutter analyze
-```
+## 필터 로직 (원본과 동일하게 유지)
 
-## 아키텍처 및 코드 구조
+- 이름 검색: `name` 부분 일치.
+- 재료 선택 시: 선택한 재료를 **모두 포함**하는 칵테일.
+- 재료 미선택 시(기본): **제조 가능한(재고 완비)** 칵테일만 표시.
 
-### 핵심 데이터 모델 (lib/ds.dart)
+## 작성 시 주의사항
 
-앱의 모든 데이터 구조는 `lib/ds.dart`에 정의되어 있습니다:
-
-- **Base**: 칵테일의 재료 (예: 보드카, 럼, 진 등)
-  - `idx`: 고유 ID
-  - `name`: 재료 이름
-  - `inStock`: 재고 보유 여부
-
-- **RecipeElement**: 레시피의 한 재료 항목
-  - `idx`: 고유 ID
-  - `base`: Base 객체
-  - `volume`: 재료의 양 (예: "30ml")
-
-- **Recipe**: 칵테일 레시피
-  - `elements`: RecipeElement 리스트
-  - `available`: 모든 재료가 재고에 있는지 여부 (자동 계산)
-
-- **Drink**: 칵테일
-  - `idx`: 고유 ID
-  - `name`: 칵테일 이름
-  - `desc`: 설명
-  - `img`: 이미지 URL
-  - `recipe`: Recipe 객체
-
-- **Comment**: 사용자 평가
-  - `idx`: 고유 ID
-  - `uid`: Firebase 사용자 ID
-  - `star`: 별점 (1-5)
-  - `comment`: 코멘트 내용
-
-### 주요 화면 및 기능
-
-#### 1. 메인 화면 (AlcoholDrinks in lib/main.dart)
-
-- **PageView 구조**: 수평 스와이프로 두 페이지 전환
-  - 첫 번째 페이지: 칵테일 목록 (검색 + 수직 스크롤)
-  - 두 번째 페이지: 소셜 페이지 (평점/코멘트)
-
-- **필터링 시스템**:
-  - `baseFilter`: 선택된 재료 ID 세트 (Drawer의 SelectPage에서 관리)
-  - `textFilter`: 칵테일 이름 검색어
-  - 필터는 `build()` 메서드에서 실시간으로 적용됨
-
-- **DrinkCard**: 탭으로 상세 정보 ↔ 레시피 간 플립 애니메이션
-
-#### 2. 관리자 화면 (AlcoholAdmin in lib/main.dart)
-
-경로: `/admin`
-
-- **PageView 구조**: 두 페이지로 구성
-  - BaseMgr: 재료 관리
-  - DrinkMgr: 칵테일 및 레시피 관리
-
-- FloatingActionButton으로 항목 추가 (BottomSheet 사용)
-
-#### 3. 재료 관리 (lib/baseMgr.dart)
-
-- **BaseMgr**: 재료 목록 표시 및 편집
-  - SwitchListTile로 재고 상태 토글
-  - TextFormField로 재료 이름 인라인 편집
-  - API 호출: `updateBaseInStock()`, `updateBaseName()`
-
-- **BaseInput**: 새 재료 추가 폼
-
-#### 4. 칵테일 관리 (lib/drinkMgr.dart)
-
-- **DrinkMgr**: 플립 애니메이션으로 두 뷰 전환
-  - DrinkListPage: 칵테일 목록
-  - RecipeEditPage: 선택된 칵테일의 레시피 편집
-
-- **RecipeEditPage**:
-  - 레시피 항목별 DropdownButton으로 재료 선택
-  - TextField로 양 입력
-  - 삭제는 로컬 상태(`deleted` 리스트)에 추가 후 커밋 시 일괄 처리
-  - "완료" 버튼으로 `updateRecipe()` 및 `deleteRecipe()` API 호출
-
-#### 5. 소셜 기능 (lib/social.dart)
-
-- **Firebase 인증**: FlutterFire UI 사용 (Google 로그인)
-- **SocialPage**:
-  - 로그인 전: SignInScreen 표시
-  - 로그인 후: 코멘트 작성 및 조회 가능
-  - 평균 평점 계산 및 표시
-  - 본인 코멘트만 삭제 가능 (UID 비교)
-
-### API 통신
-
-백엔드 URL: `https://alcohol.bada.works/api/`
-
-- **GET 엔드포인트**:
-  - `/drinks/?format=json`: 모든 칵테일 조회
-  - `/bases/?format=json`: 모든 재료 조회
-  - `/comments/?search={drink_idx}`: 특정 칵테일의 코멘트 조회 (인증 필요)
-
-- **POST 엔드포인트**:
-  - `/postdrink/`: 칵테일 추가
-  - `/postbase/`: 재료 추가
-  - `/postrecipe/`: 레시피 항목 추가
-  - `/comments/`: 코멘트 추가 (인증 필요)
-
-- **PATCH 엔드포인트**:
-  - `/postbase/{idx}/`: 재료 업데이트
-  - `/postrecipe/{idx}/`: 레시피 항목 업데이트
-
-- **DELETE 엔드포인트**:
-  - `/postrecipe/{idx}/`: 레시피 항목 삭제
-  - `/comments/{idx}/`: 코멘트 삭제 (인증 필요)
-
-### Firebase 설정
-
-Firebase 인증이 `lib/main.dart`의 `main()` 함수에서 초기화됩니다.
-**주의**: Firebase API 키가 코드에 하드코딩되어 있습니다 (프로젝트 ID: `alcohol-bada`).
-
-### 중요한 상태 관리 패턴
-
-- **GlobalKey 사용**: 부모 위젯에서 자식 State에 접근
-  - `AlcoholAdmin`에서 `BaseMgrState`와 `DrinkMgrState`의 GlobalKey 유지
-  - BottomSheet에서 항목 추가 시 `currentState?.addBase()` 또는 `currentState?.addDrink()` 호출
-
-- **Future 기반 데이터 로딩**:
-  - `initState()`에서 `fetchDrink()`, `fetchBase()`, `fetchComment()` 호출
-  - `.then()` 콜백에서 `setState()` 호출하여 UI 업데이트
-
-- **StreamBuilder**:
-  - `SocialPage`에서 `FirebaseAuth.instance.authStateChanges()` 스트림 구독
-  - 인증 상태 변경 시 자동으로 UI 전환
-
-### 코드 작성 시 주의사항
-
-1. **한글 UI**: 사용자 대면 텍스트는 한글로 작성 (예: "추가", "완료", "재고 여부", "평균 평점")
-
-2. **이미지 처리**:
-   - 칵테일 이미지가 없으면 기본 이미지 사용: `https://cdn.erniea.net/ethanol.png`
-   - lib/drink.dart:83-86 참조
-
-3. **재고 필터링 로직**:
-   - `Recipe.available`은 모든 `RecipeElement`의 `base.inStock`이 true일 때만 true
-   - 메인 화면의 칵테일 필터링은 `Drink.recipe.available` 체크
-   - SelectPage는 `inStock`이 true인 재료만 표시
-
-4. **UTF-8 디코딩**:
-   - 모든 HTTP 응답은 `utf8.decode(response.bodyBytes)` 사용 (한글 지원)
-
-5. **인증 헤더**:
-   - 코멘트 관련 API는 `Authorization` 헤더에 Firebase ID 토큰 필요
-   - `await FirebaseAuth.instance.currentUser?.getIdToken()` 사용
+1. **한글 UI**: 사용자 대면 텍스트는 한글.
+2. **기본 이미지**: 이미지 없거나 로드 실패 시 `DEFAULT_DRINK_IMAGE`(CDN) 폴백.
+3. **인증 범위**: 코멘트만 Firebase 토큰 필요. 관리자 API는 인증 없음.
+4. **이미지 정리**: 업로드 시 서버가 기존 파일을 삭제하지 않아 orphan이 쌓임(백엔드 이슈).
+5. **배포**: SPA이므로 nginx에 `try_files $uri $uri/ /index.html` 폴백 필요.

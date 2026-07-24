@@ -1,158 +1,72 @@
 # Alcohol - 칵테일 레시피 관리 앱
 
-Flutter로 개발된 칵테일 레시피 관리 및 평가 애플리케이션입니다.
+React로 개발된 칵테일 레시피 관리 및 평가 웹 앱입니다.
+(원래 Flutter 앱이었으나 웹 성능을 위해 React SPA로 마이그레이션되었습니다.)
 
 ## 주요 기능
 
-- 🍸 칵테일 레시피 검색 및 필터링
-- 📝 재료 기반 필터링
-- 💬 Firebase 인증을 통한 평가 및 댓글 시스템
-- 👨‍💼 관리자 모드 (재료 관리, 칵테일 관리)
-- 🌙 다크 모드 지원
-- 📱 Material Design 3 UI
+- 🍸 칵테일 레시피 조회 (전체화면 세로 스와이프 + 3D 플립 카드)
+- 🔎 이름 검색 및 보유 재료 기반 필터
+- 💬 Firebase Google 로그인 기반 평점·코멘트
+- 👨‍💼 관리자 모드 (재료/칵테일/레시피 편집, 이미지 업로드)
+- 🌙 라이트/다크 모드
 
 ## 기술 스택
 
-- **Framework**: Flutter 3.0+
-- **상태 관리**: Riverpod 2.6+
-- **인증**: Firebase Auth + Google OAuth
-- **UI**: Material Design 3
-- **환경 변수**: flutter_dotenv
+- **React + Vite + TypeScript** (SPA)
+- **Tailwind CSS v4**
+- **TanStack Query** — 서버 상태/캐싱
+- **Firebase Web SDK** — Google 로그인
+- **lucide-react**, **react-router-dom**
+
+백엔드(Django REST, `alcohol.bada.works/api`)와 Firebase 프로젝트는 그대로 재사용합니다.
 
 ## 시작하기
 
-### 1. 저장소 클론
-
 ```bash
-git clone https://github.com/yourusername/alcohol.git
-cd alcohol
+cd frontend
+npm install
+npm run dev      # http://localhost:5173 (개발 서버, /api 는 백엔드로 프록시)
 ```
 
-### 2. 환경 변수 설정
+Firebase 웹 설정은 공개 식별자라 `frontend/src/lib/firebase.ts`에 인라인되어 있습니다.
+(Firebase 콘솔의 승인된 도메인에 배포 도메인이 등록되어 있어야 로그인이 됩니다.)
 
-`.env.example` 파일을 복사하여 `.env` 파일을 생성합니다:
-
-```bash
-cp .env.example .env
-```
-
-`.env` 파일을 열고 Firebase 설정값을 입력합니다:
-
-```env
-# Firebase Configuration
-FIREBASE_API_KEY=your_firebase_api_key_here
-FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-FIREBASE_APP_ID=your_firebase_app_id
-FIREBASE_MEASUREMENT_ID=your_measurement_id
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id_here
-```
-
-### 3. Firebase 설정
-
-1. [Firebase Console](https://console.firebase.google.com/)에서 새 프로젝트 생성
-2. Authentication에서 Google 로그인 활성화
-3. 웹 앱 추가 후 설정값을 `.env` 파일에 입력
-
-### 4. 의존성 설치
+## 빌드 & 배포
 
 ```bash
-flutter pub get
+# 저장소 루트에서
+./scripts/deploy_web.sh    # 빌드 + rsync로 서버 배포
 ```
 
-### 5. 코드 생성 (Riverpod)
-
+또는 수동으로:
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+cd frontend
+npm run build              # → frontend/dist
 ```
 
-### 6. 앱 실행
-
-**모바일/데스크톱:**
-```bash
-flutter run
-```
-
-**Web (개발):**
-```bash
-flutter run -d chrome
-```
-
-**Web (프로덕션 빌드):**
-```bash
-# 스크립트 사용 (권장)
-./scripts/build_web.sh
-
-# 또는 수동으로
-flutter build web --release
+정적 SPA이므로 nginx 등에서 없는 경로를 index.html로 폴백해야 합니다:
+```nginx
+location / { try_files $uri $uri/ /index.html; }
 ```
 
 ## 프로젝트 구조
 
 ```
-lib/
-├── core/
-│   ├── providers/        # Riverpod service providers
-│   └── constants/        # API URLs, App 설정, 테마
-├── models/              # 데이터 모델 (Base, Drink, Recipe, Comment)
-├── services/            # API 서비스 레이어
-│   ├── drink_service.dart
-│   ├── base_service.dart
-│   ├── comment_service.dart
-│   └── recipe_service.dart
-├── features/            # 기능별 모듈
-│   ├── drinks/
-│   │   ├── providers/   # Drink 관련 providers
-│   │   ├── widgets/     # Drink 관련 위젯
-│   │   └── screens/     # Drink 화면
-│   ├── admin/          # 관리자 기능
-│   └── social/         # 평가 및 댓글 기능
-└── main.dart
+frontend/
+├── src/
+│   ├── api/          # 타입/파서(types), 조회·코멘트(client), 관리자 API(admin)
+│   ├── lib/          # firebase 초기화
+│   ├── hooks/        # queries, auth, comments, admin (TanStack Query)
+│   ├── pages/        # DrinksPage, AdminPage
+│   └── components/   # DrinkCard, DrinksFeed, FilterSheet, SocialPanel, admin/*
+scripts/
+├── build_web.sh      # React 빌드
+└── deploy_web.sh     # 빌드 + rsync 배포
 ```
 
-## 개발 가이드
-
-### 새로운 Provider 추가
-
-1. `*.dart` 파일에 `@riverpod` 어노테이션 추가
-2. `part '파일명.g.dart';` 추가
-3. Provider 작성 후 코드 생성 실행:
-   ```bash
-   dart run build_runner build --delete-conflicting-outputs
-   ```
-
-### 환경 변수 추가
-
-1. `.env` 파일에 새 변수 추가
-2. `.env.example`에도 예제 추가
-3. `lib/core/constants/app_constants.dart`에 getter 추가
-
-## 보안
-
-- ⚠️ `.env` 파일은 **절대** Git에 커밋하지 마세요
-- `.env` 파일은 `.gitignore`에 이미 추가되어 있습니다
-- 프로젝트를 공유할 때는 `.env.example`만 포함하세요
-
-### Flutter Web 보안 주의사항
-
-Flutter Web은 클라이언트 사이드 앱이므로:
-- ✅ **괜찮음**: Firebase Config (이미 공개적으로 노출됨)
-- ❌ **절대 안됨**: API Secret Keys, Private Keys
-- 💡 **권장**: 민감한 작업은 백엔드 API를 통해 처리
-
-Web 빌드 시 `--dart-define`을 사용하면 환경 변수가 빌드 시점에 주입됩니다:
-```bash
-./scripts/build_web.sh
-```
+자세한 아키텍처와 API 계약은 [CLAUDE.md](./CLAUDE.md)를 참고하세요.
 
 ## 라이선스
 
-이 프로젝트는 개인 프로젝트입니다.
-
-## 기여
-
-기여는 환영합니다! Pull Request를 보내주세요.
+개인 프로젝트입니다.
