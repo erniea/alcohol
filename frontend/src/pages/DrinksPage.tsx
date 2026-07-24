@@ -141,8 +141,8 @@ export default function DrinksPage() {
 
       {/* 본문 */}
       <main className="min-h-0 flex-1">
-        {tab === 0 ? (
-          <>
+        {/* 칵테일 목록은 항상 마운트해 스크롤 위치를 보존하고, 평가 탭에서는 숨김만 처리 */}
+        <div className={`h-full ${tab === 0 ? '' : 'hidden'}`}>
             {isLoading && <Centered>불러오는 중…</Centered>}
             {isError && (
               <Centered>
@@ -166,12 +166,13 @@ export default function DrinksPage() {
             {filtered.length > 0 && (
               <DrinksFeed drinks={filtered} onCurrentChange={setCurrentDrink} />
             )}
-          </>
-        ) : currentDrink ? (
-          <SocialPanel key={currentDrink.idx} drink={currentDrink} />
-        ) : (
-          <EvalPlaceholder />
-        )}
+        </div>
+        {tab === 1 &&
+          (currentDrink ? (
+            <SocialPanel key={currentDrink.idx} drink={currentDrink} />
+          ) : (
+            <EvalPlaceholder />
+          ))}
       </main>
 
       {/* 하단 탭바 */}
