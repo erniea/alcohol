@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+/* 앱 테마 색상 (기존 Flutter 앱과 동일 팔레트) */
+@theme {
+  --color-brand: #e63946; /* Vibrant Red */
+  --color-brand-soft: #f1faee; /* Soft White */
+  --color-brand-blue: #457b9d; /* Deep Blue */
+  --color-brand-cyan: #a8dadc; /* Light Blue */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, 'Segoe UI', Roboto, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light dark;
+}
