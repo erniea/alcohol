@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ImagePlus, Plus, Trash2 } from 'lucide-react'
+import { DEFAULT_DRINK_IMAGE } from '../../api/client'
 import type { Drink } from '../../api/types'
 import { useBases } from '../../hooks/queries'
 import { useSaveRecipe, useUploadDrinkImage } from '../../hooks/admin'
@@ -35,6 +36,13 @@ export default function RecipeEditModal({
     })),
   )
   const [deleted, setDeleted] = useState<number[]>([])
+  // 새로 고른 이미지의 로컬 미리보기 (업로드 후에도 즉시 반영)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   const addRow = () => {
     const firstBase = bases?.[0]?.idx ?? 0
@@ -68,19 +76,36 @@ export default function RecipeEditModal({
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) uploadImage.mutate({ drinkIdx: drink.idx, file })
+    if (!file) return
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+    uploadImage.mutate({ drinkIdx: drink.idx, file })
   }
+
+  const imgSrc = previewUrl || drink.img || DEFAULT_DRINK_IMAGE
 
   return (
     <Modal title={`${drink.name} 레시피`} onClose={onClose}>
-      {/* 이미지 업로드 */}
+      {/* 현재 이미지 미리보기 (탭하여 변경) */}
       <button
         onClick={() => fileRef.current?.click()}
         disabled={uploadImage.isPending}
-        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 py-3 text-sm text-neutral-500 disabled:opacity-50 dark:border-neutral-600"
+        className="relative mb-4 block h-40 w-full overflow-hidden rounded-2xl bg-neutral-100 disabled:opacity-70 dark:bg-neutral-800"
       >
-        <ImagePlus size={18} />
-        {uploadImage.isPending ? '업로드 중…' : '이미지 변경'}
+        <img
+          src={imgSrc}
+          alt={drink.name}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            ;(e.currentTarget as HTMLImageElement).src = DEFAULT_DRINK_IMAGE
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/50 py-2 text-sm text-white">
+          <ImagePlus size={16} />
+          {uploadImage.isPending ? '업로드 중…' : '이미지 변경'}
+        </div>
       </button>
       <input
         ref={fileRef}
